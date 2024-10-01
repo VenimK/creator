@@ -35,8 +35,6 @@ PROTOCOL = os.environ.get("PROTOCOL", 'https')
 REPONAME = os.environ.get("REPONAME", 'creator')
 
 
-SECURE_SSL_REDIRECT = True
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -81,7 +79,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
 ]
 
 ROOT_URLCONF = 'rdgen.urls'
