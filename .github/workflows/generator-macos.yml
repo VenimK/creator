@@ -534,9 +534,13 @@ jobs:
             sed -i -e "s/osx_minimum_system_version = \"[0-9]*.[0-9]*\"/osx_minimum_system_version = \"${MIN_MACOS_VERSION}\"/" Cargo.toml
             sed -i -e "s/MACOSX_DEPLOYMENT_TARGET = [0-9]*.[0-9]*;/MACOSX_DEPLOYMENT_TARGET = ${MIN_MACOS_VERSION};/" flutter/macos/Runner.xcodeproj/project.pbxproj
           fi
-          ./build.py --flutter --hwcodec ${{ matrix.job.extra-build-args }}
+          
+          # Create MacOS directory structure and copy service file
           mkdir -p ./build/macos/Build/Products/Release/RustDesk.app/Contents/MacOS
           cp -rf ../target/release/service ./build/macos/Build/Products/Release/RustDesk.app/Contents/MacOS/
+
+          # Build rustdesk
+          ./build.py --flutter --hwcodec ${{ matrix.job.extra-build-args }}
 
       - name: Report Status
         uses: fjogeleit/http-request-action@v1
