@@ -46,22 +46,16 @@ jobs:
 
       - name: Install prerequisites
         run: |
-          sudo apt-get install ca-certificates -y
           sudo apt-get update -y
-          sudo apt-get install -y \
+          sudo apt-get install -y --no-install-recommends \
             clang \
             cmake \
-            curl \
-            gcc \
-            git \
-            g++ \
             libclang-10-dev \
             libgtk-3-dev \
             llvm-10-dev \
             nasm \
             ninja-build \
-            pkg-config \
-            wget
+            pkg-config
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@v1
@@ -73,6 +67,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           prefix-key: bridge-${{ matrix.job.os }}
+          shared-key: "${{ matrix.job.target }}-${{ hashFiles('**/Cargo.lock') }}"
+          cache-directories: "~/.cargo/bin/flutter_rust_bridge_codegen"
 
       - name: Cache Bridge
         id: cache-bridge
@@ -80,6 +76,18 @@ jobs:
         with:
           path: /tmp/flutter_rust_bridge
           key: vcpkg-${{ matrix.job.arch }}
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pub-cache
+            flutter/build
+            flutter/.dart_tool
+            flutter/.pub-cache
+          key: flutter-${{ matrix.job.os }}-${{ hashFiles('flutter/pubspec.lock') }}
+          restore-keys: |
+            flutter-${{ matrix.job.os }}-
 
       - name: Install flutter
         uses: subosito/flutter-action@v2
