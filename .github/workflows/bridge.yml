@@ -41,6 +41,20 @@ jobs:
           restore-keys: |
             bridge-${{ runner.os }}-
 
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+        id: cargo-cache
+
       - name: Checkout source code
         if: ${{ inputs.version != 'master' }}
         uses: actions/checkout@v4
@@ -141,10 +155,13 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-      # Cleanup to prevent cache bloat
-      - name: Cleanup build artifacts
+      - name: Cleanup cache
         if: always()
         run: |
+          # Remove unnecessary files from cargo cache
+          rm -rf ~/.cargo/registry/index/*
+          rm -rf ~/.cargo/registry/cache/*
+          rm -rf ~/.cargo/git/db/*
           rm -rf target/debug/
           rm -rf target/release/deps/
           rm -rf ~/.cargo/registry/src/
