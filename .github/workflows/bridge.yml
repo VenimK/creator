@@ -1,6 +1,3 @@
-BRIDGE YAML 26/01
-
-
 # This yaml shares the build bridge steps with ci and nightly.
 name: Build flutter-rust-bridge
 # 2023-11-23 18:00:00+00:00
