@@ -14,21 +14,17 @@ on:
 env:
   FLUTTER_VERSION: "3.22.3"
   FLUTTER_RUST_BRIDGE_VERSION: "1.80.1"
-  RUST_VERSION: "1.75" # https://github.com/rustdesk/rustdesk/discussions/7503
+  RUST_VERSION: "1.75"
 
 jobs:
   generate_bridge:
-    runs-on: ${{ matrix.job.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        job:
-          - {
-              target: x86_64-unknown-linux-gnu,
-              os: ubuntu-20.04,
-              extra-build-args: "",
-            }
+    runs-on: self-hosted
     steps:
+      - name: Clean workspace
+        run: |
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+
       - name: Checkout source code
         if: ${{ inputs.version != 'master' }}
         uses: actions/checkout@v4
@@ -44,42 +40,34 @@ jobs:
           repository: rustdesk/rustdesk
           submodules: recursive
 
-      - name: Install prerequisites
+      - name: Setup Homebrew packages
         run: |
-          sudo apt-get install ca-certificates -y
-          sudo apt-get update -y
-          sudo apt-get install -y \
-            clang \
-            cmake \
-            curl \
-            gcc \
-            git \
-            g++ \
-            libclang-10-dev \
-            libgtk-3-dev \
-            llvm-10-dev \
-            nasm \
-            ninja-build \
-            pkg-config \
-            wget
+          # Only install if not already installed
+          which clang || brew install llvm
+          which cmake || brew install cmake
+          which ninja || brew install ninja
+          which nasm || brew install nasm
+          which pkg-config || brew install pkg-config
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: ${{ env.RUST_VERSION }}
-          targets: ${{ matrix.job.target }}
           components: "rustfmt"
+
+      - name: Setup Cargo cache directory
+        run: |
+          mkdir -p ~/.cargo/registry
+          mkdir -p ~/.cargo/git
+          mkdir -p target
 
       - uses: Swatinem/rust-cache@v2
         with:
-          prefix-key: bridge-${{ matrix.job.os }}
-
-      - name: Cache Bridge
-        id: cache-bridge
-        uses: actions/cache@v3
-        with:
-          path: /tmp/flutter_rust_bridge
-          key: vcpkg-${{ matrix.job.arch }}
+          prefix-key: bridge-self-hosted
+          cache-directories: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
 
       - name: Install flutter
         uses: subosito/flutter-action@v2
@@ -91,7 +79,11 @@ jobs:
       - name: Install flutter rust bridge deps
         shell: bash
         run: |
-          cargo install flutter_rust_bridge_codegen --version ${{ env.FLUTTER_RUST_BRIDGE_VERSION }} --features "uuid" --locked
+          # Check if flutter_rust_bridge_codegen is already installed with correct version
+          if ! command -v flutter_rust_bridge_codegen &> /dev/null || \
+             [[ "$(flutter_rust_bridge_codegen --version)" != *"${{ env.FLUTTER_RUST_BRIDGE_VERSION }}"* ]]; then
+            cargo install flutter_rust_bridge_codegen --version ${{ env.FLUTTER_RUST_BRIDGE_VERSION }} --features "uuid" --locked
+          fi
           pushd flutter && sed -i -e 's/extended_text: 14.0.0/extended_text: 13.0.0/g' pubspec.yaml && flutter pub get && popd
 
       - name: Run flutter rust bridge
@@ -99,14 +91,11 @@ jobs:
           ~/.cargo/bin/flutter_rust_bridge_codegen --rust-input ./src/flutter_ffi.rs --dart-output ./flutter/lib/generated_bridge.dart --c-output ./flutter/macos/Runner/bridge_generated.h
           cp ./flutter/macos/Runner/bridge_generated.h ./flutter/ios/Runner/bridge_generated.h
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@master
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
         with:
           name: bridge-artifact
           path: |
-            ./src/bridge_generated.rs
-            ./src/bridge_generated.io.rs
             ./flutter/lib/generated_bridge.dart
-            ./flutter/lib/generated_bridge.freezed.dart
             ./flutter/macos/Runner/bridge_generated.h
             ./flutter/ios/Runner/bridge_generated.h
