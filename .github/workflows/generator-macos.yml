@@ -187,7 +187,8 @@ jobs:
             # If files exist in the downloaded structure, copy them to the correct location
             if [ -f "downloaded_bridge_files/flutter/lib/generated_bridge.dart" ] && \
                [ -f "downloaded_bridge_files/flutter/macos/Runner/bridge_generated.h" ] && \
-               [ -f "downloaded_bridge_files/src/bridge_generated.rs" ]; then
+               [ -f "downloaded_bridge_files/src/bridge_generated.rs" ] && \
+               [ -f "downloaded_bridge_files/src/bridge_generated.io.rs" ]; then
               echo "Found bridge files in artifact, copying to correct locations..."
               mkdir -p flutter/lib flutter/macos/Runner flutter/ios/Runner src
               cp -r downloaded_bridge_files/flutter/* flutter/
@@ -197,6 +198,7 @@ jobs:
               ls -la flutter/macos/Runner/bridge_generated.h
               ls -la flutter/ios/Runner/bridge_generated.h
               ls -la src/bridge_generated.rs
+              ls -la src/bridge_generated.io.rs
             else
               echo "Bridge files not found in expected structure"
               mkdir -p flutter/lib flutter/macos/Runner flutter/ios/Runner src
@@ -205,7 +207,14 @@ jobs:
                 --rust-input ./src/flutter_ffi.rs \
                 --dart-output ./flutter/lib/generated_bridge.dart \
                 --c-output ./flutter/macos/Runner/bridge_generated.h \
-                --rust-output ./src/bridge_generated.rs
+                --rust-output ./src/bridge_generated.rs \
+                --class-name RustDesk \
+                --skip-add-mod-to-lib
+              
+              # Create the io module file
+              echo "// Auto-generated file" > ./src/bridge_generated.io.rs
+              grep -A999999 "^mod io {" ./src/bridge_generated.rs | tail -n +2 | grep -B999999 "^}" | head -n -1 > ./src/bridge_generated.io.rs
+              
               cp ./flutter/macos/Runner/bridge_generated.h ./flutter/ios/Runner/bridge_generated.h
             fi
           else
@@ -215,7 +224,14 @@ jobs:
               --rust-input ./src/flutter_ffi.rs \
               --dart-output ./flutter/lib/generated_bridge.dart \
               --c-output ./flutter/macos/Runner/bridge_generated.h \
-              --rust-output ./src/bridge_generated.rs
+              --rust-output ./src/bridge_generated.rs \
+              --class-name RustDesk \
+              --skip-add-mod-to-lib
+            
+            # Create the io module file
+            echo "// Auto-generated file" > ./src/bridge_generated.io.rs
+            grep -A999999 "^mod io {" ./src/bridge_generated.rs | tail -n +2 | grep -B999999 "^}" | head -n -1 > ./src/bridge_generated.io.rs
+            
             cp ./flutter/macos/Runner/bridge_generated.h ./flutter/ios/Runner/bridge_generated.h
           fi
 
