@@ -24,6 +24,22 @@ jobs:
         run: |
           rm -rf ./* || true
           rm -rf ./.??* || true
+          rm -rf ~/.pub-cache/hosted || true
+
+      # Consolidated cache configuration
+      - name: Setup build cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.pub-cache
+            target
+            flutter/build
+            ~/.cargo/bin/flutter_rust_bridge_codegen
+          key: bridge-${{ runner.os }}-${{ hashFiles('**/Cargo.lock', 'flutter/pubspec.lock') }}
+          restore-keys: |
+            bridge-${{ runner.os }}-
 
       - name: Checkout source code
         if: ${{ inputs.version != 'master' }}
@@ -61,14 +77,6 @@ jobs:
           mkdir -p ~/.cargo/git
           mkdir -p target
 
-      - uses: Swatinem/rust-cache@v2
-        with:
-          prefix-key: bridge-self-hosted
-          cache-directories: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-
       - name: Install flutter
         uses: subosito/flutter-action@v2
         with:
@@ -99,3 +107,12 @@ jobs:
             ./flutter/lib/generated_bridge.dart
             ./flutter/macos/Runner/bridge_generated.h
             ./flutter/ios/Runner/bridge_generated.h
+
+      # Cleanup to prevent cache bloat
+      - name: Cleanup build artifacts
+        if: always()
+        run: |
+          rm -rf target/debug/
+          rm -rf target/release/deps/
+          rm -rf ~/.cargo/registry/src/
+          rm -rf ~/.pub-cache/hosted/
