@@ -99,22 +99,18 @@ jobs:
       fail-fast: false
       matrix:
         job:
-          #- {
-          #    target: x86_64-apple-darwin,
-          #    os: macos-13,
-          #    extra-build-args: "",
-          #    arch: x86_64,
-          #    vcpkg-triplet: x64-osx,
-          #  }
           - {
               target: aarch64-apple-darwin,
-              os: macos-latest,
-              extra-build-args: "",
               arch: arm64,
               vcpkg-triplet: arm64-osx,
             }
 
     steps:
+      - name: Clean workspace
+        run: |
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
         with:
@@ -161,11 +157,55 @@ jobs:
               name: bridge-artifact
               path: ./
 
-      - name: Install imagemagick and potrace and nasm and and
-        shell: bash
+      - name: Setup Homebrew packages
         run: |
-          brew install imagemagick potrace nasm cmake gcc wget ninja
-          echo "$(brew --prefix imagemagick)/bin" >> $GITHUB_PATH
+          # Only install if not already installed
+          which cmake || brew install cmake
+          which ninja || brew install ninja
+          which nasm || brew install nasm
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ env.MAC_RUST_VERSION }}
+          targets: ${{ matrix.job.target }}
+          components: "rustfmt"
+
+      - name: Setup Cargo cache directory
+        run: |
+          mkdir -p ~/.cargo/registry
+          mkdir -p ~/.cargo/git
+          mkdir -p target
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: ${{ matrix.job.os }}
+          cache-directories: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+
+      - name: Setup vcpkg with binary cache
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
+          doNotCache: false
+          vcpkgTriplet: ${{ matrix.job.vcpkg-triplet }}
+
+      - name: Install vcpkg dependencies
+        run: |
+          if ! $VCPKG_ROOT/vcpkg \
+            install \
+            --x-install-root="$VCPKG_ROOT/installed"; then
+            find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
+              echo "$_1:"
+              echo "======"
+              cat "$_1"
+              echo "======"
+              echo ""
+            done
+            exit 1
+          fi
 
       - name: Update macOS Info.plist and settings
         continue-on-error: false
@@ -255,41 +295,6 @@ jobs:
           sed -i -e 's/_setFramesEnabledState(false);/\/\/_setFramesEnabledState(false);/g' ../packages/flutter/lib/src/scheduler/binding.dart
           grep -n '_setFramesEnabledState(false);' ../packages/flutter/lib/src/scheduler/binding.dart
         
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@v1
-        with:
-            toolchain: ${{ env.MAC_RUST_VERSION }}
-            targets: ${{ matrix.job.target }}
-            components: "rustfmt"
-  
-        
-      - uses: Swatinem/rust-cache@v2
-        with:
-          prefix-key: ${{ matrix.job.os }}
-
-      - name: Setup vcpkg with Github Actions binary cache
-        uses: lukka/run-vcpkg@v11
-        with:
-            vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
-            doNotCache: false
-  
-      - name: Install vcpkg dependencies
-        run: |
-          if ! $VCPKG_ROOT/vcpkg \
-            install \
-            --x-install-root="$VCPKG_ROOT/installed"; then
-            find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
-              echo "$_1:"
-              echo "======"
-              cat "$_1"
-              echo "======"
-              echo ""
-            done
-            exit 1
-          fi
-          head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
-        shell: bash
-
       - name: Magick stuff for macOS
         if: ${{ inputs.iconlink != 'false' }}
         continue-on-error: false
@@ -472,13 +477,6 @@ jobs:
           git apply statussort.diff
       
       
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@v1
-        with:
-            toolchain: ${{ env.MAC_RUST_VERSION }}
-            targets: ${{ matrix.job.target }}
-            components: "rustfmt"
-
       - name: Report Status
         uses: fjogeleit/http-request-action@v1
         with:
@@ -488,10 +486,6 @@ jobs:
           data: '{"uuid": "${{ inputs.uuid }}", "status": "15% complete"}'
   
         
-      - uses: Swatinem/rust-cache@v2
-        with:
-          prefix-key: ${{ matrix.job.os }}
-
       - name: Report Status
         uses: fjogeleit/http-request-action@v1
         with:
@@ -499,35 +493,6 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "20% complete"}'
-
-      - name: Setup vcpkg with Github Actions binary cache
-        uses: lukka/run-vcpkg@v11
-        with:
-            vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
-            doNotCache: false
-  
-      - name: Install vcpkg dependencies
-        run: |
-          if ! $VCPKG_ROOT/vcpkg \
-            install \
-            --x-install-root="$VCPKG_ROOT/installed"; then
-            find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
-              echo "$_1:"
-              echo "======"
-              cat "$_1"
-              echo "======"
-              echo ""
-            done
-            exit 1
-          fi
-
-      - name: Report Status
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: ${{ env.STATUS_URL }}
-          method: 'POST'
-          customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "25% complete"}'
 
       - name: Create MacOS directory structure
         run: |
