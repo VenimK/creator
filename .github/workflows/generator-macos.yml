@@ -137,6 +137,43 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
+      - name: Setup Flutter cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pub-cache
+            ~/.flutter
+          key: flutter-pub-macos-stable-${{ env.FLUTTER_VERSION }}-${{ runner.arch }}-${{ hashFiles('**/pubspec.lock') }}-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: |
+            flutter-pub-macos-stable-${{ env.FLUTTER_VERSION }}-${{ runner.arch }}-
+        id: flutter-cache
+
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+        id: cargo-cache
+
+      - name: Cleanup cache
+        if: always()
+        run: |
+          # Remove unnecessary files from cargo cache
+          rm -rf ~/.cargo/registry/index/*
+          rm -rf ~/.cargo/registry/cache/*
+          rm -rf ~/.cargo/git/db/*
+          
+          # Remove unnecessary files from flutter cache
+          rm -rf ~/.pub-cache/hosted
+          rm -rf ~/.flutter/bin/cache/artifacts
+
       - name: Set rdgen value
         if: ${{ fromJson(inputs.extras).rdgen == 'true' }}
         run: |
