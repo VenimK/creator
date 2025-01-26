@@ -99,13 +99,6 @@ jobs:
       fail-fast: false
       matrix:
         job:
-          #- {
-          #    target: x86_64-apple-darwin,
-          #    os: macos-13,
-          #    extra-build-args: "",
-          #    arch: x86_64,
-          #    vcpkg-triplet: x64-osx,
-          #  }
           - {
               target: aarch64-apple-darwin,
               os: macos-latest,
@@ -115,6 +108,21 @@ jobs:
             }
 
     steps:
+      - name: Setup build environment cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+            flutter/build
+            ~/Library/Caches/CocoaPods
+            ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-build-${{ matrix.job.target }}-${{ hashFiles('**/Cargo.lock', '**/Podfile.lock', 'flutter/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ matrix.job.target }}-
+            ${{ runner.os }}-build-
+
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
         with:
@@ -234,7 +242,7 @@ jobs:
           data: '{"uuid": "${{ inputs.uuid }}", "status": "10% complete"}'    
 
       - name: Install flutter
-        uses: subosito/flutter-action@v2.12.0
+        uses: subosito/flutter-action@v2
         with:
           channel: "stable"
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -258,21 +266,17 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@v1
         with:
-            toolchain: ${{ env.MAC_RUST_VERSION }}
-            targets: ${{ matrix.job.target }}
-            components: "rustfmt"
-  
-        
-      - uses: Swatinem/rust-cache@v2
-        with:
-          prefix-key: ${{ matrix.job.os }}
+          toolchain: ${{ env.MAC_RUST_VERSION }}
+          targets: ${{ matrix.job.target }}
 
-      - name: Setup vcpkg with Github Actions binary cache
-        uses: lukka/run-vcpkg@v11
+      - name: Cache vcpkg
+        uses: actions/cache@v3
         with:
-            vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
-            doNotCache: false
-  
+          path: |
+            ${{ github.workspace }}/vcpkg
+            ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ runner.os }}-vcpkg-${{ matrix.job.vcpkg-triplet }}-${{ env.VCPKG_COMMIT_ID }}
+
       - name: Install vcpkg dependencies
         run: |
           if ! $VCPKG_ROOT/vcpkg \
@@ -475,9 +479,8 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@v1
         with:
-            toolchain: ${{ env.MAC_RUST_VERSION }}
-            targets: ${{ matrix.job.target }}
-            components: "rustfmt"
+          toolchain: ${{ env.MAC_RUST_VERSION }}
+          targets: ${{ matrix.job.target }}
 
       - name: Report Status
         uses: fjogeleit/http-request-action@v1
@@ -503,8 +506,8 @@ jobs:
       - name: Setup vcpkg with Github Actions binary cache
         uses: lukka/run-vcpkg@v11
         with:
-            vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
-            doNotCache: false
+          vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
+          doNotCache: false
   
       - name: Install vcpkg dependencies
         run: |
