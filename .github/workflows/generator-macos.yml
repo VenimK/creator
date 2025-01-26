@@ -93,7 +93,7 @@ jobs:
 
   build-for-macos-flutter:
     name: Build macOS
-    runs-on: macos-latest
+    runs-on: self-hosted
     needs: [generate-bridge]
     strategy:
       fail-fast: false
