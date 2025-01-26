@@ -115,8 +115,10 @@ jobs:
             --dart-output ./flutter/lib/generated_bridge.dart \
             --c-output ./flutter/macos/Runner/bridge_generated.h \
             --rust-output ./src/bridge_generated.rs \
-            --class-name RustDesk \
-            --skip-add-mod-to-lib
+            --class-name PlatformFFI \
+            --dart-decl-output ./flutter/lib/generated_bridge_definitions.dart \
+            --dart-impl-output ./flutter/lib/generated_bridge_impl.dart \
+            --wasm
           
           # Extract io module content more reliably
           awk '/^mod io \{/,/^}/ { if (!/^mod io \{/ && !/^}/) print }' ./src/bridge_generated.rs > ./src/bridge_generated.io.rs
