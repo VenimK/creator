@@ -523,14 +523,13 @@ jobs:
           data: '{"uuid": "${{ inputs.uuid }}", "status": "50% complete, this step takes about 5 minutes, be patient."}'
       
       - name: Install rcodesign tool
-        if: env.MACOS_P12_BASE64 != null
-        shell: bash
+        if: env.MACOS_P12_BASE64 != ''
         run: |
-          pushd /tmp
-          wget https://github.com/indygreg/apple-platform-rs/releases/download/apple-codesign%2F0.22.0/apple-codesign-0.22.0-macos-universal.tar.gz
-          tar -zxvf apple-codesign-0.22.0-macos-universal.tar.gz
-          mv apple-codesign-0.22.0-macos-universal/rcodesign /usr/local/bin
-          popd
+          curl -L -o apple-codesign.tar.gz https://github.com/indygreg/apple-platform-rs/releases/download/apple-codesign%2F0.22.0/apple-codesign-0.22.0-macos-universal.tar.gz
+          tar -xzvf apple-codesign.tar.gz
+          sudo mkdir -p /usr/local/bin
+          sudo mv apple-codesign-0.22.0-macos-universal/rcodesign /usr/local/bin/
+          rm -rf apple-codesign*
 
       - name: Install build runtime
         run: |
