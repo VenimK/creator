@@ -96,12 +96,17 @@ jobs:
 
       - name: Run flutter rust bridge
         run: |
-          ~/.cargo/bin/flutter_rust_bridge_codegen --rust-input ./src/flutter_ffi.rs --dart-output ./flutter/lib/generated_bridge.dart --c-output ./flutter/macos/Runner/bridge_generated.h
+          ~/.cargo/bin/flutter_rust_bridge_codegen \
+            --rust-input ./src/flutter_ffi.rs \
+            --dart-output ./flutter/lib/generated_bridge.dart \
+            --c-output ./flutter/macos/Runner/bridge_generated.h \
+            --rust-output ./src/bridge_generated.rs
           cp ./flutter/macos/Runner/bridge_generated.h ./flutter/ios/Runner/bridge_generated.h
           echo "Verifying generated files..."
           ls -la ./flutter/lib/generated_bridge.dart
           ls -la ./flutter/macos/Runner/bridge_generated.h
           ls -la ./flutter/ios/Runner/bridge_generated.h
+          ls -la ./src/bridge_generated.rs
 
       - name: Create artifact structure
         run: |
@@ -109,11 +114,13 @@ jobs:
           mkdir -p bridge_files/flutter/lib
           mkdir -p bridge_files/flutter/macos/Runner
           mkdir -p bridge_files/flutter/ios/Runner
+          mkdir -p bridge_files/src
           
           # Copy files with their full directory structure
           cp ./flutter/lib/generated_bridge.dart bridge_files/flutter/lib/
           cp ./flutter/macos/Runner/bridge_generated.h bridge_files/flutter/macos/Runner/
           cp ./flutter/ios/Runner/bridge_generated.h bridge_files/flutter/ios/Runner/
+          cp ./src/bridge_generated.rs bridge_files/src/
           
           echo "Verifying artifact structure:"
           find bridge_files -type f
