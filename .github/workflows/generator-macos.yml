@@ -84,6 +84,8 @@ env:
   UPLOAD_ARTIFACT: 'true'
   SIGN_BASE_URL: "${{ secrets.SIGN_BASE_URL }}"
   STATUS_URL: "${{ secrets.GENURL }}/updategh"
+  HOMEBREW_NO_AUTO_UPDATE: 1  # Prevent brew from auto-updating
+  HOMEBREW_NO_INSTALL_CLEANUP: 1  # Skip cleanup to speed up installation
 
 jobs:
   generate-bridge:
@@ -99,13 +101,6 @@ jobs:
       fail-fast: false
       matrix:
         job:
-          #- {
-          #    target: x86_64-apple-darwin,
-          #    os: macos-13,
-          #    extra-build-args: "",
-          #    arch: x86_64,
-          #    vcpkg-triplet: x64-osx,
-          #  }
           - {
               target: aarch64-apple-darwin,
               os: macos-latest,
@@ -121,6 +116,26 @@ jobs:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Cache Homebrew packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            /usr/local/Cellar
+          key: brew-${{ runner.os }}-${{ hashFiles('.github/workflows/generator-macos.yml') }}
+          restore-keys: |
+            brew-${{ runner.os }}-
+
+      - name: Cache build artifacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./build
+            ./flutter/build
+          key: build-${{ runner.os }}-${{ matrix.job.target }}-${{ github.sha }}
+          restore-keys: |
+            build-${{ runner.os }}-${{ matrix.job.target }}-
 
       - name: Set rdgen value
         if: ${{ fromJson(inputs.extras).rdgen == 'true' }}
@@ -161,11 +176,12 @@ jobs:
               name: bridge-artifact
               path: ./
 
-      - name: Install imagemagick and potrace and nasm and and
-        shell: bash
+      - name: Install build dependencies
         run: |
-          brew install imagemagick potrace nasm cmake gcc wget ninja
-          echo "$(brew --prefix imagemagick)/bin" >> $GITHUB_PATH
+          brew install --no-quarantine imagemagick potrace nasm cmake gcc wget ninja
+          if ! command -v pkg-config &>/dev/null; then
+              brew install --no-quarantine pkg-config
+          fi
 
       - name: Update macOS Info.plist and settings
         continue-on-error: false
@@ -239,6 +255,7 @@ jobs:
           channel: "stable"
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+          cache-key: flutter-${{ runner.os }}-${{ env.FLUTTER_VERSION }}
 
       - name: Patch flutter
         continue-on-error: true
@@ -543,7 +560,7 @@ jobs:
             sed -i -e "s/MACOSX_DEPLOYMENT_TARGET = [0-9]*.[0-9]*;/MACOSX_DEPLOYMENT_TARGET = ${MIN_MACOS_VERSION};/" flutter/macos/Runner.xcodeproj/project.pbxproj
           fi
           sed -i -e "s/RustDesk.app/\"${{ inputs.appname }}.app\"/" build.py
-          ./build.py --flutter --hwcodec ${{ matrix.job.extra-build-args }}
+          RUSTFLAGS="-C target-cpu=native" ./build.py --flutter --hwcodec --release ${{ matrix.job.extra-build-args }}
 
       # - name: Copy service file
       #   run: |
@@ -803,3 +820,13 @@ jobs:
       #    tag_name: ${{ inputs.upload-tag }}
       #    files: |
       #      ${{ inputs.appname }}*-${{ matrix.job.arch }}.dmg
+
+      - name: Report Status
+        if: always()
+        continue-on-error: true
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: ${{ env.STATUS_URL }}
+          method: 'POST'
+          customHeaders: '{"Content-Type": "application/json"}'
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "${{ job.status }}"}'
