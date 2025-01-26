@@ -104,9 +104,8 @@ jobs:
             --class-name RustDesk \
             --skip-add-mod-to-lib
           
-          # Create the io module file
-          echo "// Auto-generated file" > ./src/bridge_generated.io.rs
-          grep -A999999 "^mod io {" ./src/bridge_generated.rs | tail -n +2 | grep -B999999 "^}" | head -n -1 > ./src/bridge_generated.io.rs
+          # Extract io module content more reliably
+          awk '/^mod io \{/,/^}/ { if (!/^mod io \{/ && !/^}/) print }' ./src/bridge_generated.rs > ./src/bridge_generated.io.rs
           
           cp ./flutter/macos/Runner/bridge_generated.h ./flutter/ios/Runner/bridge_generated.h
           echo "Verifying generated files..."
