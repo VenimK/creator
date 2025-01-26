@@ -170,11 +170,26 @@ jobs:
             repository: rustdesk/rustdesk
             submodules: recursive
 
-      - name: Restore bridge files
-        uses: actions/download-artifact@master
+      - name: Download bridge artifact
+        uses: actions/download-artifact@v3
+        id: download
+        continue-on-error: true
         with:
-              name: bridge-artifact
-              path: ./
+          name: bridge-artifact
+          path: ./
+
+      - name: Verify bridge files
+        run: |
+          if [ ! -f "./flutter/lib/generated_bridge.dart" ] || \
+             [ ! -f "./flutter/macos/Runner/bridge_generated.h" ] || \
+             [ ! -f "./flutter/ios/Runner/bridge_generated.h" ]; then
+            echo "Bridge files not found, regenerating locally..."
+            mkdir -p flutter/lib
+            mkdir -p flutter/macos/Runner
+            mkdir -p flutter/ios/Runner
+            ~/.cargo/bin/flutter_rust_bridge_codegen --rust-input ./src/flutter_ffi.rs --dart-output ./flutter/lib/generated_bridge.dart --c-output ./flutter/macos/Runner/bridge_generated.h
+            cp ./flutter/macos/Runner/bridge_generated.h ./flutter/ios/Runner/bridge_generated.h
+          fi
 
       - name: Setup Homebrew packages
         run: |
