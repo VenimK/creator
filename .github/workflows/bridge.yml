@@ -14,47 +14,21 @@ on:
 env:
   FLUTTER_VERSION: "3.22.3"
   FLUTTER_RUST_BRIDGE_VERSION: "1.80.1"
-  RUST_VERSION: "1.75"
+  RUST_VERSION: "1.75" # https://github.com/rustdesk/rustdesk/discussions/7503
 
 jobs:
   generate_bridge:
-    runs-on: self-hosted
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - {
+              target: x86_64-unknown-linux-gnu,
+              os: ubuntu-20.04,
+              extra-build-args: "",
+            }
     steps:
-      - name: Clean workspace
-        run: |
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-          rm -rf ~/.pub-cache/hosted || true
-
-      # Consolidated cache configuration
-      - name: Setup build cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            ~/.pub-cache
-            target
-            flutter/build
-            ~/.cargo/bin/flutter_rust_bridge_codegen
-          key: bridge-${{ runner.os }}-${{ hashFiles('**/Cargo.lock', 'flutter/pubspec.lock') }}
-          restore-keys: |
-            bridge-${{ runner.os }}-
-
-      - name: Cache Cargo
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-        id: cargo-cache
-
       - name: Checkout source code
         if: ${{ inputs.version != 'master' }}
         uses: actions/checkout@v4
@@ -70,26 +44,42 @@ jobs:
           repository: rustdesk/rustdesk
           submodules: recursive
 
-      - name: Setup Homebrew packages
+      - name: Install prerequisites
         run: |
-          # Only install if not already installed
-          which clang || brew install llvm
-          which cmake || brew install cmake
-          which ninja || brew install ninja
-          which nasm || brew install nasm
-          which pkg-config || brew install pkg-config
+          sudo apt-get install ca-certificates -y
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            clang \
+            cmake \
+            curl \
+            gcc \
+            git \
+            g++ \
+            libclang-10-dev \
+            libgtk-3-dev \
+            llvm-10-dev \
+            nasm \
+            ninja-build \
+            pkg-config \
+            wget
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: ${{ env.RUST_VERSION }}
+          targets: ${{ matrix.job.target }}
           components: "rustfmt"
 
-      - name: Setup Cargo cache directory
-        run: |
-          mkdir -p ~/.cargo/registry
-          mkdir -p ~/.cargo/git
-          mkdir -p target
+      - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: bridge-${{ matrix.job.os }}
+
+      - name: Cache Bridge
+        id: cache-bridge
+        uses: actions/cache@v3
+        with:
+          path: /tmp/flutter_rust_bridge
+          key: vcpkg-${{ matrix.job.arch }}
 
       - name: Install flutter
         uses: subosito/flutter-action@v2
@@ -101,70 +91,22 @@ jobs:
       - name: Install flutter rust bridge deps
         shell: bash
         run: |
-          # Check if flutter_rust_bridge_codegen is already installed with correct version
-          if ! command -v flutter_rust_bridge_codegen &> /dev/null || \
-             [[ "$(flutter_rust_bridge_codegen --version)" != *"${{ env.FLUTTER_RUST_BRIDGE_VERSION }}"* ]]; then
-            cargo install flutter_rust_bridge_codegen --version ${{ env.FLUTTER_RUST_BRIDGE_VERSION }} --features "uuid" --locked
-          fi
+          cargo install flutter_rust_bridge_codegen --version ${{ env.FLUTTER_RUST_BRIDGE_VERSION }} --features "uuid" --locked
           pushd flutter && sed -i -e 's/extended_text: 14.0.0/extended_text: 13.0.0/g' pubspec.yaml && flutter pub get && popd
 
       - name: Run flutter rust bridge
         run: |
-          ~/.cargo/bin/flutter_rust_bridge_codegen \
-            --rust-input ./src/flutter_ffi.rs \
-            --dart-output ./flutter/lib/generated_bridge.dart \
-            --c-output ./flutter/macos/Runner/bridge_generated.h \
-            --rust-output ./src/bridge_generated.rs \
-            --class-name PlatformFFI \
-            --dart-decl-output ./flutter/lib/generated_bridge_definitions.dart \
-            --dart-impl-output ./flutter/lib/generated_bridge_impl.dart \
-            --wasm
-          
-          # Extract io module content more reliably
-          awk '/^mod io \{/,/^}/ { if (!/^mod io \{/ && !/^}/) print }' ./src/bridge_generated.rs > ./src/bridge_generated.io.rs
-          
+          ~/.cargo/bin/flutter_rust_bridge_codegen --rust-input ./src/flutter_ffi.rs --dart-output ./flutter/lib/generated_bridge.dart --c-output ./flutter/macos/Runner/bridge_generated.h
           cp ./flutter/macos/Runner/bridge_generated.h ./flutter/ios/Runner/bridge_generated.h
-          echo "Verifying generated files..."
-          ls -la ./flutter/lib/generated_bridge.dart
-          ls -la ./flutter/macos/Runner/bridge_generated.h
-          ls -la ./flutter/ios/Runner/bridge_generated.h
-          ls -la ./src/bridge_generated.rs
-          ls -la ./src/bridge_generated.io.rs
 
-      - name: Create artifact structure
-        run: |
-          # Create a clean directory structure for artifacts
-          mkdir -p bridge_files/flutter/lib
-          mkdir -p bridge_files/flutter/macos/Runner
-          mkdir -p bridge_files/flutter/ios/Runner
-          mkdir -p bridge_files/src
-          
-          # Copy files with their full directory structure
-          cp ./flutter/lib/generated_bridge.dart bridge_files/flutter/lib/
-          cp ./flutter/macos/Runner/bridge_generated.h bridge_files/flutter/macos/Runner/
-          cp ./flutter/ios/Runner/bridge_generated.h bridge_files/flutter/ios/Runner/
-          cp ./src/bridge_generated.rs bridge_files/src/
-          cp ./src/bridge_generated.io.rs bridge_files/src/
-          
-          echo "Verifying artifact structure:"
-          find bridge_files -type f
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
+      - name: Upload Artifact
+        uses: actions/upload-artifact@master
         with:
           name: bridge-artifact
-          path: bridge_files
-          retention-days: 1
-          if-no-files-found: error
-
-      - name: Cleanup cache
-        if: always()
-        run: |
-          # Remove unnecessary files from cargo cache
-          rm -rf ~/.cargo/registry/index/*
-          rm -rf ~/.cargo/registry/cache/*
-          rm -rf ~/.cargo/git/db/*
-          rm -rf target/debug/
-          rm -rf target/release/deps/
-          rm -rf ~/.cargo/registry/src/
-          rm -rf ~/.pub-cache/hosted/
+          path: |
+            ./src/bridge_generated.rs
+            ./src/bridge_generated.io.rs
+            ./flutter/lib/generated_bridge.dart
+            ./flutter/lib/generated_bridge.freezed.dart
+            ./flutter/macos/Runner/bridge_generated.h
+            ./flutter/ios/Runner/bridge_generated.h
