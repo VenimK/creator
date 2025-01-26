@@ -110,6 +110,25 @@ jobs:
         run: |
           rm -rf ./* || true
           rm -rf ./.??* || true
+          rm -rf ~/.pub-cache/hosted || true
+
+      - name: Setup build cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.pub-cache
+            target
+            flutter/build
+            ~/Library/Caches/CocoaPods
+            ~/Library/Developer/Xcode/DerivedData
+            ${{ github.workspace }}/vcpkg
+            ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ runner.os }}-build-${{ matrix.job.target }}-${{ hashFiles('**/Cargo.lock', '**/Podfile.lock', 'flutter/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ matrix.job.target }}-
+            ${{ runner.os }}-build-
 
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
@@ -177,13 +196,13 @@ jobs:
           mkdir -p ~/.cargo/git
           mkdir -p target
 
-      - uses: Swatinem/rust-cache@v2
-        with:
-          prefix-key: ${{ matrix.job.os }}
-          cache-directories: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
+      - name: Cleanup build artifacts
+        if: always()
+        run: |
+          rm -rf target/debug/
+          rm -rf target/release/deps/
+          rm -rf ~/.cargo/registry/src/
+          rm -rf ~/Library/Caches/CocoaPods/Pods/Release/
 
       - name: Setup vcpkg with binary cache
         uses: lukka/run-vcpkg@v11
