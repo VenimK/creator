@@ -256,13 +256,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           prefix-key: ${{ matrix.job.os }}
-
-      - name: Setup vcpkg with Github Actions binary cache
-        uses: lukka/run-vcpkg@v11
-        with:
-            vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
-            doNotCache: false
-  
+        
       - name: Magick stuff for macOS
         if: ${{ inputs.iconlink != 'false' }}
         continue-on-error: false
