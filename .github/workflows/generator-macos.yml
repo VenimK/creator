@@ -122,17 +122,15 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      - name: Set rdgen value
-        if: ${{ fromJson(inputs.extras).rdgen == 'true' }}
+      - name: Set Status URL
         run: |
-          echo "STATUS_URL=${{ secrets.GENURL }}/updategh" >> $env:GITHUB_ENV
+          if [[ "${{ fromJson(inputs.extras).rdgen }}" == "true" ]]; then
+            echo "STATUS_URL=${{ secrets.GENURL }}/updategh" >> $GITHUB_ENV
+          else
+            echo "STATUS_URL=${{ inputs.apiServer }}/api/updategh" >> $GITHUB_ENV
+          fi
 
-      - name: Set rdgen value
-        if: ${{ fromJson(inputs.extras).rdgen == 'false' }}
-        run: |
-          echo "STATUS_URL=${{ inputs.apiServer }}/api/updategh" >> $env:GITHUB_ENV
-
-      - name: Report Status
+      - name: Report Status - Start
         uses: fjogeleit/http-request-action@v1
         with:
           url: ${{ env.STATUS_URL }}
@@ -141,18 +139,10 @@ jobs:
           data: '{"uuid": "${{ inputs.uuid }}", "status": "5% complete"}'
 
       - name: Checkout source code
-        if: ${{ env.VERSION != 'master' }}
         uses: actions/checkout@v4
         with:
             repository: rustdesk/rustdesk
-            ref: refs/tags/${{ env.VERSION }}
-            submodules: recursive
-  
-      - name: Checkout source code
-        if: ${{ env.VERSION == 'master' }}
-        uses: actions/checkout@v4
-        with:
-            repository: rustdesk/rustdesk
+            ref: ${{ env.VERSION == 'master' && 'HEAD' || format('refs/tags/{0}', env.VERSION) }}
             submodules: recursive
 
       - name: Restore bridge files
@@ -225,13 +215,13 @@ jobs:
           mv ./flutter/pubspec.yaml.tmp ./flutter/pubspec.yaml
           rm ./flutter/temp_dependency.txt
 
-      - name: Report Status
+      - name: Report Status - Pre Build
         uses: fjogeleit/http-request-action@v1
         with:
           url: ${{ env.STATUS_URL }}
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "10% complete"}'    
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "20% complete"}'
 
       - name: Install flutter
         uses: subosito/flutter-action@v2.12.0
@@ -452,7 +442,6 @@ jobs:
         if: fromJson(inputs.extras).statussort == 'true'
         run: |
           wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/statussort.diff
-          git apply statussort.diff
       
       
       - name: Install Rust toolchain
@@ -462,13 +451,13 @@ jobs:
             targets: ${{ matrix.job.target }}
             components: "rustfmt"
 
-      - name: Report Status
+      - name: Report Status - Pre Build
         uses: fjogeleit/http-request-action@v1
         with:
           url: ${{ env.STATUS_URL }}
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "15% complete"}'
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "20% complete"}'
   
         
       - uses: Swatinem/rust-cache@v2
@@ -529,18 +518,18 @@ jobs:
           sed -i -e "s/RustDesk.app/\"${{ inputs.appname }}.app\"/" build.py
           ./build.py --flutter --hwcodec ${{ matrix.job.extra-build-args }}
 
-      # - name: Copy service file
-      #   run: |
-      #     cp -rf ../target/release/service ./build/macos/Build/Products/Release/RustDesk.app/Contents/MacOS/
-
-      - name: Report Status
+      - name: Report Status - Post Build
         uses: fjogeleit/http-request-action@v1
         with:
           url: ${{ env.STATUS_URL }}
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "50% complete, this step takes about 5 minutes, be patient."}'
-      
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "80% complete"}'
+
+      # - name: Copy service file
+      #   run: |
+      #     cp -rf ../target/release/service ./build/macos/Build/Products/Release/RustDesk.app/Contents/MacOS/
+
       - name: Install rcodesign tool
         if: env.MACOS_P12_BASE64 != null
         shell: bash
