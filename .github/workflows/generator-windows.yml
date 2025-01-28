@@ -521,19 +521,22 @@ jobs:
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      - name: Build msi
-        continue-on-error: true
+      - name: Build MSI
         if: env.UPLOAD_ARTIFACT == 'true'
+        shell: pwsh
         run: |
           $myappname = "${{ inputs.appname }}" -replace '\s','_'
-          cp "rustdesk/${{ inputs.appname }}.exe" "rustdesk/${myappname}.exe"
+          # Only copy if source and destination are different
+          if ("$myappname" -ne "rustdesk") {
+            cp "rustdesk/rustdesk.exe" "rustdesk/${myappname}.exe"
+          }
           pushd ./res/msi
           python preprocess.py --app-name "$myappname" --arp -d ../../rustdesk
           nuget restore msi.sln
           msbuild msi.sln -p:Configuration=Release -p:Platform=x64 /p:TargetVersion=Windows10
-          cp ./Package/bin/x64/Release/en-us/Package.msi ../../SignOutput/rustdesk-latest.msi
-          mv ./Package/bin/x64/Release/en-us/Package.msi ../../SignOutput/rustdesk.msi
-          sha256sum ../../SignOutput/rustdesk.msi
+          cp ./Package/bin/x64/Release/en-us/Package.msi ../../SignOutput/${myappname}-latest.msi
+          mv ./Package/bin/x64/Release/en-us/Package.msi ../../SignOutput/${myappname}.msi
+          sha256sum ../../SignOutput/${myappname}.msi
 
       # - name: Sign rustdesk self-extracted file
       #   if: env.UPLOAD_ARTIFACT == 'true' && env.SIGN_BASE_URL != ''
