@@ -3,6 +3,3 @@ gunicorn.conf
 exe/
 png/
 db.sqlite3
-.gitignore
-db.sqlite3
-rdgen/settings.py
