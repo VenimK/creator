@@ -99,12 +99,18 @@ jobs:
       fail-fast: false
       matrix:
         job:
+          #- {
+          #    target: x86_64-apple-darwin,
+          #    os: macos-13,
+          #    extra-build-args: "",
+          #    arch: x86_64,
+          #    vcpkg-triplet: x64-osx,
+          #  }
           - {
               target: aarch64-apple-darwin,
               os: macos-latest,
-              # extra-build-args: "--disable-flutter-texture-render", # disable this for mac, because we see a lot of users reporting flickering both on arm and x64, and we can not confirm if texture rendering has better performance if htere is no vram, https://github.com/rustdesk/rustdesk/issues/6296
-              extra-build-args: "--screencapturekit",
-              arch: aarch64,
+              extra-build-args: "",
+              arch: arm64,
               vcpkg-triplet: arm64-osx,
             }
 
@@ -116,17 +122,15 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      - name: Set rdgen value
-        if: ${{ fromJson(inputs.extras).rdgen == 'true' }}
+      - name: Set Status URL
         run: |
-          echo "STATUS_URL=${{ secrets.GENURL }}/updategh" >> $env:GITHUB_ENV
+          if [[ "${{ fromJson(inputs.extras).rdgen }}" == "true" ]]; then
+            echo "STATUS_URL=${{ secrets.GENURL }}/updategh" >> $GITHUB_ENV
+          else
+            echo "STATUS_URL=${{ inputs.apiServer }}/api/updategh" >> $GITHUB_ENV
+          fi
 
-      - name: Set rdgen value
-        if: ${{ fromJson(inputs.extras).rdgen == 'false' }}
-        run: |
-          echo "STATUS_URL=${{ inputs.apiServer }}/api/updategh" >> $env:GITHUB_ENV
-
-      - name: Report Status
+      - name: Report Status - Start
         uses: fjogeleit/http-request-action@v1
         with:
           url: ${{ env.STATUS_URL }}
@@ -134,21 +138,11 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "5% complete"}'
 
-      
-
       - name: Checkout source code
-        if: ${{ env.VERSION != 'master' }}
         uses: actions/checkout@v4
         with:
             repository: rustdesk/rustdesk
-            ref: refs/tags/${{ env.VERSION }}
-            submodules: recursive
-  
-      - name: Checkout source code
-        if: ${{ env.VERSION == 'master' }}
-        uses: actions/checkout@v4
-        with:
-            repository: rustdesk/rustdesk
+            ref: ${{ env.VERSION == 'master' && 'HEAD' || format('refs/tags/{0}', env.VERSION) }}
             submodules: recursive
 
       - name: Restore bridge files
@@ -221,13 +215,13 @@ jobs:
           mv ./flutter/pubspec.yaml.tmp ./flutter/pubspec.yaml
           rm ./flutter/temp_dependency.txt
 
-      - name: Report Status
+      - name: Report Status - Pre Build
         uses: fjogeleit/http-request-action@v1
         with:
           url: ${{ env.STATUS_URL }}
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "10% complete"}'    
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "20% complete"}'
 
       - name: Install flutter
         uses: subosito/flutter-action@v2.12.0
@@ -263,29 +257,7 @@ jobs:
         with:
           prefix-key: ${{ matrix.job.os }}
 
-      - name: Setup vcpkg with Github Actions binary cache
-        uses: lukka/run-vcpkg@v11
-        with:
-            vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
-            doNotCache: false
   
-      - name: Install vcpkg dependencies
-        run: |
-          if ! $VCPKG_ROOT/vcpkg \
-            install \
-            --x-install-root="$VCPKG_ROOT/installed"; then
-            find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
-              echo "$_1:"
-              echo "======"
-              cat "$_1"
-              echo "======"
-              echo ""
-            done
-            exit 1
-          fi
-          head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
-        shell: bash
-
       - name: Magick stuff for macOS
         if: ${{ inputs.iconlink != 'false' }}
         continue-on-error: false
@@ -443,45 +415,44 @@ jobs:
         continue-on-error: true
         if: fromJson(inputs.extras).cycleMonitor == 'true'
         run: |
-          wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/cycle_monitor.diff
+          wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/cycle_monitor.diff
           git apply cycle_monitor.diff
   
       - name: use X for offline display instead of orange circle
         continue-on-error: true
         if: fromJson(inputs.extras).xOffline == 'true'
         run: |
-          wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/xoffline.diff
+          wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/xoffline.diff
           git apply xoffline.diff
 
       - name: hide-cm
         continue-on-error: true
         if: fromJson(inputs.extras).hidecm == 'true'
         run: |
-          wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/hidecm.diff
+          wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/hidecm.diff
           git apply hidecm.diff
 
       - name: statussort
         continue-on-error: true
         if: fromJson(inputs.extras).statussort == 'true'
         run: |
-          wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/statussort.diff
+          wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/statussort.diff
           git apply statussort.diff
-      
-      
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@v1
-        with:
-            toolchain: ${{ env.MAC_RUST_VERSION }}
-            targets: ${{ matrix.job.target }}
-            components: "rustfmt"
 
-      - name: Report Status
+      - name: removeNewVersionNotif
+        continue-on-error: true
+        if: fromJson(inputs.extras).removeNewVersionNotif == 'true'
+        run: | 
+          wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/removeNewVersionNotif.diff
+          git apply removeNewVersionNotif.diff
+
+      - name: Report Status - Pre Build
         uses: fjogeleit/http-request-action@v1
         with:
           url: ${{ env.STATUS_URL }}
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "15% complete"}'
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "20% complete"}'
   
         
       - uses: Swatinem/rust-cache@v2
@@ -495,6 +466,10 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "20% complete"}'
+
+      - name: Create MacOS directory structure
+        run: |
+          mkdir -p ./build/macos/Build/Products/Release/RustDesk.app/Contents/MacOS
 
       - name: Setup vcpkg with Github Actions binary cache
         uses: lukka/run-vcpkg@v11
@@ -524,6 +499,7 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "25% complete"}'
+     
 
       - name: Build rustdesk
         run: |
@@ -534,16 +510,21 @@ jobs:
             sed -i -e "s/osx_minimum_system_version = \"[0-9]*.[0-9]*\"/osx_minimum_system_version = \"${MIN_MACOS_VERSION}\"/" Cargo.toml
             sed -i -e "s/MACOSX_DEPLOYMENT_TARGET = [0-9]*.[0-9]*;/MACOSX_DEPLOYMENT_TARGET = ${MIN_MACOS_VERSION};/" flutter/macos/Runner.xcodeproj/project.pbxproj
           fi
+          sed -i -e "s/RustDesk.app/\"${{ inputs.appname }}.app\"/" build.py
           ./build.py --flutter --hwcodec ${{ matrix.job.extra-build-args }}
 
-      - name: Report Status
+      - name: Report Status - Post Build
         uses: fjogeleit/http-request-action@v1
         with:
           url: ${{ env.STATUS_URL }}
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "50% complete, this step takes about 5 minutes, be patient."}'
-      
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "80% complete"}'
+
+      # - name: Copy service file
+      #   run: |
+      #     cp -rf ../target/release/service ./build/macos/Build/Products/Release/RustDesk.app/Contents/MacOS/
+
       - name: Install rcodesign tool
         if: env.MACOS_P12_BASE64 != null
         shell: bash
@@ -556,7 +537,7 @@ jobs:
 
       - name: Install build runtime
         run: |
-          brew install llvm create-dmg nasm cmake gcc wget ninja
+          brew install llvm create-dmg
           # pkg-config is handled in a separate step, because it may be already installed by `macos-latest`(14.7.1) runner
           if command -v pkg-config &>/dev/null; then
               echo "pkg-config is already installed"
@@ -789,4 +770,4 @@ jobs:
       #    prerelease: true
       #    tag_name: ${{ inputs.upload-tag }}
       #    files: |
-      #      ${{ inputs.appname }}*-${{ matrix.job.arch }}.dmg
+      #      ${{ inputs.appname }}*-${{ matrix.job.arch }}.dmg 

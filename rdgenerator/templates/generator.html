@@ -3,16 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RustDesk Custom Client Builder</title>
+    <title>Custom Client Builder</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #1a1a2e;
+            --secondary-color: #16213e;
+            --accent-color: #0f3460;
+            --text-color: #e94560;
+        }
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #000;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: #e0e0e0;
             margin: 0;
             padding: 20px;
+            overflow-x: hidden;
         }
         .platform {
             display: grid;
@@ -21,33 +28,69 @@
             margin: 0 auto;
             padding: 20px;
             max-width: 1200px;
+            position: relative;
+            z-index: 10;
         }
         .container {
             display: grid;
-            grid-template-columns: 1fr 1fr;  /* Adjust as needed */
+            grid-template-columns: 1fr 1fr; 
             grid-gap: 20px;
-            margin: 0 auto;  /* Center the container horizontally */
+            margin: 0 auto;
             padding: 20px;
             max-width: 1200px;
+            position: relative;
+            z-index: 10;
+        }
+        h1 {
+            color: var(--text-color);
+            text-align: center;
+            grid-column: 1 / -1;
+            text-shadow: 0 0 10px rgba(233,69,96,0.5);
+            font-size: 2.5em;
+            position: relative;
+        }
+        /* Spinning cogs animation */
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        h1 i.fas.fa-cogs {
+            display: inline-block;
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        h1:hover i.fas.fa-cogs {
+            animation: spin 2s linear infinite;
+        }
+        .section {
+            background-color: rgba(17, 17, 17, 0.7);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 0 20px rgba(233,69,96,0.3);
+            backdrop-filter: blur(10px);
+        }
+        .platform-icon {
+            transition: transform 0.3s, color 0.3s;
+        }
+        .platform-icon:hover {
+            transform: scale(1.2);
+            color: var(--text-color);
+        }
+        .platform-icon.active {
+            color: var(--text-color);
+            text-shadow: 0 0 15px var(--text-color);
         }
         .column {
             flex: 50%;
         }
-        h1 {
-            color: #fff;
-            text-align: center;
-            grid-column: 1 / -1;
-        }
         h2 {
             color: #fff;
             margin-top: 0;
-        }
-        .section {
-            background-color: #111;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            flex: 50%;
         }
         label {
             display: block;
@@ -83,15 +126,6 @@
             justify-content: space-around;
             margin-bottom: 20px;
         }
-        .platform-icon {
-            font-size: 32px;
-            color: #bbb;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-        .platform-icon:hover, .platform-icon.active {
-            color: #fff;
-        }
         .checkbox-group {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -106,10 +140,66 @@
             max-height: 100px;
             margin-top: 10px;
         }
-      </style>
+        /* PayPal Button Styles */
+        .paypal-button {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #00457C 0%, #0079C1 100%);
+            color: white;
+            padding: 12px 28px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 69, 124, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            text-transform: uppercase;
+        }
+
+        .paypal-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 69, 124, 0.3);
+            background: linear-gradient(135deg, #005AA7 0%, #0095EA 100%);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .paypal-button i {
+            margin-right: 12px;
+            font-size: 20px;
+            background: white;
+            color: #00457C;
+            padding: 8px;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .paypal-button:hover i {
+            transform: rotate(360deg);
+            color: #0095EA;
+        }
+    </style>
 </head>
 <body>
-    <h1><i class="fas fa-cogs"></i> RustDesk Custom Client Builder</h1>
+    <h1><i class="fas fa-cogs"></i> RustDesk Builder For Everyone</h1>
+    <!-- PayPal Sponsor Button -->
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="https://paypal.me/VenimK" 
+           target="_blank" 
+           class="paypal-button">
+            <i class="fab fa-paypal"></i>
+            Support This Project
+        </a>
+        <p style="margin-top: 12px; font-size: 0.9em; color: var(--text-color); opacity: 0.8;">
+            Your support helps keep this service free and maintained ✨
+        </p>
+    </div>
     <form action="/generator" method="post" enctype="multipart/form-data">
         <div class="platform">
             <h2><i class="fas fa-desktop"></i> Select Platform</h2>
@@ -133,9 +223,9 @@
         <div class="container">   
             <div class="section">
                 <h2><i class="fas fa-sliders-h"></i> General</h2>
-                    <label for="{{ form.exename.id_for_label }}">Name of the configuration (no spaces or special characters, English characters only):</label>
+                    <label for="{{ form.exename.id_for_label }}">Name of the configuration (don't use spaces or special characters):</label>
                     {{ form.exename }}<br><br>
-                    <label for="{{ form.appname.id_for_label }}">Custom Application Name (leave blank to use default):</label>
+                    <label for="{{ form.appname.id_for_label }}">Custom Application Name:</label>
                     {{ form.appname }}<br><br>
                     <label for="{{ form.direction.id_for_label }}">Connection Type:</label>
                     {{ form.direction }}<br><br>
@@ -206,12 +296,12 @@
                         <label for="{{ form.enableRecording.id_for_label }}">{{ form.enableRecording }} Enable recording session</label>
                         <label for="{{ form.enableBlockingInput.id_for_label }}">{{ form.enableBlockingInput }} Enable blocking user input</label>
                         <label for="{{ form.enableRemoteModi.id_for_label }}">{{ form.enableRemoteModi }} Enable remote configuration modification</label>
-                    </div><br>
+                    </div>
                 <h2><i class="fas fa-code"></i> Code Changes</h2>
                     <label for="{{ form.cycleMonitor.id_for_label }}">{{ form.cycleMonitor }} Add a button to cycle through available monitors to the minimized toolbar.</label><br>
                     <label for="{{ form.xOffline.id_for_label }}">{{ form.xOffline }} Display an X for offline devices in the addressbook.</label><br>
                     <label for="{{ form.hidecm.id_for_label }}">{{ form.hidecm }} Allow hiding the connection window from remote screen.</label><br>
-                    <label for="{{ form.statussort.id_for_label }}">{{ form.statussort }} Allow sorting by online status.</label><br>
+                    <label for="{{ form.removeNewVersionNotif.id_for_label }}">{{ form.removeNewVersionNotif }} Remove new version notification</label><br>
             </div>
 
             <div class="section">
@@ -226,8 +316,6 @@
         <div class="platform">
             <div class="section">
                 <button type="submit"><i class="fas fa-rocket"></i> Generate Custom Client</button>
-                <a href="https://github.com/bryangerlach/rdgen">Source Code on github</a>
-                <iframe src="https://github.com/sponsors/bryangerlach/button" title="Sponsor bryangerlach" height="32" width="114" style="border: 0; border-radius: 6px;"></iframe>
             </div>
         </div>
     </form>

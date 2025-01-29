@@ -129,17 +129,15 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
       
-      - name: Set rdgen value
-        if: ${{ fromJson(inputs.extras).rdgen == 'true' }}
+      - name: Set Status URL
         run: |
-          echo "STATUS_URL=${{ secrets.GENURL }}/updategh" >> $env:GITHUB_ENV
+          if ("${{ fromJson(inputs.extras).rdgen }}" -eq "true") {
+            echo "STATUS_URL=${{ secrets.GENURL }}/updategh" >> $env:GITHUB_ENV
+          } else {
+            echo "STATUS_URL=${{ inputs.apiServer }}/api/updategh" >> $env:GITHUB_ENV
+          }
 
-      - name: Set rdgen value
-        if: ${{ fromJson(inputs.extras).rdgen == 'false' }}
-        run: |
-          echo "STATUS_URL=${{ inputs.apiServer }}/api/updategh" >> $env:GITHUB_ENV
-
-      - name: Report Status
+      - name: Report Status - Start
         uses: fjogeleit/http-request-action@v1
         with:
           url: ${{ env.STATUS_URL }}
@@ -148,18 +146,10 @@ jobs:
           data: '{"uuid": "${{ inputs.uuid }}", "status": "5% complete"}'
 
       - name: Checkout source code
-        if: ${{ env.VERSION != 'master' }}
         uses: actions/checkout@v4
         with:
           repository: rustdesk/rustdesk
-          ref: refs/tags/${{ env.VERSION }}
-          submodules: recursive
-
-      - name: Checkout source code
-        if: ${{ env.VERSION == 'master' }}
-        uses: actions/checkout@v4
-        with:
-          repository: rustdesk/rustdesk
+          ref: ${{ env.VERSION == 'master' && 'HEAD' || format('refs/tags/{0}', env.VERSION) }}
           submodules: recursive
 
       - name: Restore bridge files
@@ -191,7 +181,7 @@ jobs:
           # ./flutter/windows/runner/Runner.rc
           sed -i -e 's|"RustDesk Remote Desktop"|"${{ inputs.appname }}"|' ./flutter/windows/runner/Runner.rc
           sed -i -e 's|VALUE "InternalName", "rustdesk" "\0"|VALUE "InternalName", "${{ inputs.appname }}" "\0"|' ./flutter/windows/runner/Runner.rc
-          sed -i -e 's|"Copyright © 2024 Purslane Ltd. All rights reserved."|"Copyright © 2024"|' ./flutter/windows/runner/Runner.rc
+          sed -i -e 's|"Copyright 2024 Purslane Ltd. All rights reserved."|"Copyright 2024"|' ./flutter/windows/runner/Runner.rc
           sed -i -e 's|"rustdesk.exe"|"${{ inputs.filename }}"|' ./flutter/windows/runner/Runner.rc
           sed -i -e 's|"RustDesk"|"${{ inputs.appname }}"|' ./flutter/windows/runner/Runner.rc
           # ./src/lang/en.rs
@@ -225,13 +215,13 @@ jobs:
         with:
           version: ${{ env.LLVM_VERSION }}
 
-      - name: Report Status
+      - name: Report Status - Pre Cache
         uses: fjogeleit/http-request-action@v1
         with:
           url: ${{ env.STATUS_URL }}
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "10% complete"}'
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "15% complete"}'
 
       - name: Install flutter
         uses: subosito/flutter-action@v2.12.0 #https://github.com/subosito/flutter-action/issues/277
@@ -247,7 +237,7 @@ jobs:
           flutter precache --windows
           Invoke-WebRequest -Uri https://github.com/rustdesk/engine/releases/download/main/windows-x64-release.zip -OutFile windows-x64-release.zip
           Expand-Archive -Path windows-x64-release.zip -DestinationPath windows-x64-release
-          mv -Force windows-x64-release/*  C:/hostedtoolcache/windows/flutter/stable-${{ env.FLUTTER_VERSION }}-x64/bin/cache/artifacts/engine/windows-x64-release/
+          mv -Force windows-x64-release/*  C:/hostedtoolcache/windows/flutter/stable-${{ env.FLUTTER_VERSION }}-x64/bin/cache/artifacts/engine/windows-x64-release/
 
       - name: Patch flutter
         continue-on-error: true
@@ -264,25 +254,25 @@ jobs:
           targets: ${{ matrix.job.target }}
           components: "rustfmt"
 
-      - name: Report Status
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: ${{ env.STATUS_URL }}
-          method: 'POST'
-          customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "15% complete"}'
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          prefix-key: ${{ matrix.job.os }}
-        
-      - name: Report Status
+      - name: Report Status - Pre Build
         uses: fjogeleit/http-request-action@v1
         with:
           url: ${{ env.STATUS_URL }}
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "20% complete"}'
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: ${{ matrix.job.os }}
+        
+      - name: Report Status - Pre Icon
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: ${{ env.STATUS_URL }}
+          method: 'POST'
+          customHeaders: '{"Content-Type": "application/json"}'
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "25% complete"}'
 
       - name: Setup vcpkg with Github Actions binary cache
         uses: lukka/run-vcpkg@v11
@@ -359,30 +349,36 @@ jobs:
         continue-on-error: true
         if: fromJson(inputs.extras).cycleMonitor == 'true'
         run: |
-          Invoke-WebRequest -Uri https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/cycle_monitor.diff -OutFile cycle_monitor.diff
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/cycle_monitor.diff -OutFile cycle_monitor.diff
           git apply cycle_monitor.diff
 
       - name: use X for offline display instead of orange circle
         continue-on-error: true
         if: fromJson(inputs.extras).xOffline == 'true'
         run: |
-          Invoke-WebRequest -Uri https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/xoffline.diff -OutFile xoffline.diff
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/xoffline.diff -OutFile xoffline.diff
           git apply xoffline.diff
 
       - name: hide-cm
         continue-on-error: true
         if: fromJson(inputs.extras).hidecm == 'true'
         run: |
-          Invoke-WebRequest -Uri https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/hidecm.diff -OutFile hidecm.diff
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/hidecm.diff -OutFile hidecm.diff
           git apply hidecm.diff
 
       - name: statussort
         continue-on-error: true
         if: fromJson(inputs.extras).statussort == 'true'
         run: |
-          Invoke-WebRequest -Uri https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/statussort.diff -OutFile statussort.diff
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/statussort.diff -OutFile statussort.diff
           git apply statussort.diff
 
+      - name: removeNewVersionNotif
+        continue-on-error: true
+        if: fromJson(inputs.extras).removeNewVersionNotif == 'true'
+        run: | 
+          wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/removeNewVersionNotif.diff
+          git apply removeNewVersionNotif.diff
 
       - name: run as admin
         continue-on-error: true
@@ -479,146 +475,67 @@ jobs:
       #     pip3 install requests argparse
       #     BASE_URL=${{ secrets.SIGN_BASE_URL }} SECRET_KEY=${{ secrets.SIGN_SECRET_KEY }} python3 res/job.py sign_files ./rustdesk/
 
-      - name: Report Status
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: ${{ env.STATUS_URL }}
-          method: 'POST'
-          customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "70% complete, this step takes about 5 minutes, be patient."}'
-      
-      - name: zip dlls
-        continue-on-error: true
-        shell: pwsh
-        run: |
-          Compress-Archive -Path ./rustdesk/*.dll, ./rustdesk/*.exe -DestinationPath ./rustdesk/unsigned_files.zip -CompressionLevel Fastest
-
-      - name: sign dlls
-        continue-on-error: true
-        shell: bash
-        run: |
-          curl -X POST -F "file=@./rustdesk/unsigned_files.zip" \
-                -H "X-API-KEY: ${{ secrets.SIGN_API_KEY }}" \
-                -m 900 \
-                "${{ secrets.SIGN_URL }}/sign/" -o ./rustdesk/signed_files.zip 
-
-      - name: unzip dlls
-        continue-on-error: true
-        shell: pwsh
-        run: |
-          Expand-Archive -Path ./rustdesk/signed_files.zip -DestinationPath ./rustdek/ -Force
-          
-
-      - name: Create custom.txt file
-        shell: bash
-        run: |
-          echo -n "${{ env.CUSTOM }}" | cat > ./rustdesk/custom.txt
-        
-
       - name: Build self-extracted executable
         shell: bash
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
-          mv "./rustdesk/rustdesk.exe" "./rustdesk/${{ inputs.appname }}.exe" || echo "rustdesk.exe"
+          mv "./rustdesk/rustdesk.exe" "./rustdesk/${{ inputs.filename }}.exe" || echo "File already renamed"
           sed -i '/dpiAware/d' res/manifest.xml
           pushd ./libs/portable
           pip3 install -r requirements.txt
-          python3 ./generate.py -f ../../rustdesk/ -o . -e "../../rustdesk/${{ inputs.appname }}.exe"
+          python3 ./generate.py -f ../../rustdesk/ -o . -e "../../rustdesk/${{ inputs.filename }}.exe"
           popd
           mkdir -p ./SignOutput
-          mv ./target/release/rustdesk-portable-packer.exe "./SignOutput/rustdesk.exe"
+          mv ./target/release/rustdesk-portable-packer.exe "./SignOutput/${{ inputs.filename }}.exe"
 
-      - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Build msi
-        continue-on-error: true
-        if: env.UPLOAD_ARTIFACT == 'true'
-        run: |
-          pushd ./res/msi
-          $myappname = "${{ inputs.appname }}"
-          $myappname = $myappname -replace '\s','_'
-          python preprocess.py --app-name "$myappname" --arp -d ../../rustdesk
-          nuget restore msi.sln
-          msbuild msi.sln -p:Configuration=Release -p:Platform=x64 /p:TargetVersion=Windows10
-          cp ./Package/bin/x64/Release/en-us/Package.msi ../../SignOutput/rustdesk-latest.msi
-          mv ./Package/bin/x64/Release/en-us/Package.msi ../../SignOutput/rustdesk.msi
-          sha256sum ../../SignOutput/rustdesk.msi
-
-      # - name: Sign rustdesk self-extracted file
-      #   if: env.UPLOAD_ARTIFACT == 'true' && env.SIGN_BASE_URL != ''
-      #   shell: bash
-      #   run: |
-      #     BASE_URL=${{ secrets.SIGN_BASE_URL }} SECRET_KEY=${{ secrets.SIGN_SECRET_KEY }} python3 res/job.py sign_files ./SignOutput
-
-      - name: Report Status
+      - name: Report Status - Pre MSI
         uses: fjogeleit/http-request-action@v1
         with:
           url: ${{ env.STATUS_URL }}
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "85% complete"}'
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "75% complete - Building MSI installer"}'
 
-      - name: zip exe and msi
-        continue-on-error: true
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build MSI
+        if: env.UPLOAD_ARTIFACT == 'true'
         shell: pwsh
         run: |
-          Compress-Archive -Path ./SignOutput/*.exe, ./SignOutput/*.msi -DestinationPath ./SignOutput/unsigned_files.zip -CompressionLevel Fastest
+          pushd ./res/msi
+          python preprocess.py --app-name "${{ inputs.appname }}" --arp -d ../../rustdesk
+          nuget restore msi.sln
+          msbuild msi.sln -p:Configuration=Release -p:Platform=x64 /p:TargetVersion=Windows10
+          cp ./Package/bin/x64/Release/en-us/Package.msi ../../SignOutput/${{ inputs.filename }}.msi
+          popd
 
-      - name: sign exe and msi
-        continue-on-error: true
+      - name: Generate checksums
+        if: env.UPLOAD_ARTIFACT == 'true'
         shell: bash
         run: |
-          curl -X POST -F "file=@./SignOutput/unsigned_files.zip" \
-                -H "X-API-KEY: ${{ secrets.SIGN_API_KEY }}" \
-                -m 900 \
-                "${{ secrets.SIGN_URL }}/sign/" -o ./SignOutput/signed_files.zip 
+          cd SignOutput
+          echo "Generating SHA-256 checksums..."
+          sha256sum *.exe > SHA256SUMS.txt
+          sha256sum *.msi >> SHA256SUMS.txt
+          cat SHA256SUMS.txt
 
-      - name: unzip exe and msi
-        continue-on-error: true
-        shell: pwsh
-        run: |
-          Expand-Archive -Path ./SignOutput/signed_files.zip -DestinationPath ./SignOutput/ -Force
+      - name: Upload final artifacts
+        if: env.UPLOAD_ARTIFACT == 'true'
+        uses: actions/upload-artifact@master
+        with:
+          name: ${{ inputs.appname }}-windows-${{ matrix.job.arch }}
+          path: SignOutput/
+          if-no-files-found: error
 
-      # - name: Sign rustdesk self-extracted file
-      #   uses: GermanBluefox/code-sign-action@v7
-      #   if: env.UPLOAD_ARTIFACT == 'true'
-      #   with:
-      #     certificate: '${{ secrets.WINDOWS_PFX_BASE64 }}'
-      #     password: '${{ secrets.WINDOWS_PFX_PASSWORD }}'
-      #     certificatesha1: '${{ secrets.WINDOWS_PFX_SHA1_THUMBPRINT }}'
-      #     # certificatename: '${{ secrets.WINDOWS_PFX_NAME }}'
-      #     folder: './SignOutput'
-      #     recursive: false
+      - name: Report Status - Complete
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: ${{ env.STATUS_URL }}
+          method: 'POST'
+          customHeaders: '{"Content-Type": "application/json"}'
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "100% complete - Build finished successfully"}'
 
-      # - name: Publish Release
-      #   uses: softprops/action-gh-release@v1
-      #   if: env.UPLOAD_ARTIFACT == 'true'
-      #   with:
-      #     prerelease: true
-      #     tag_name: ${{ env.TAG_NAME }}
-      #     files: |
-      #       ./SignOutput/rustdesk-*.msi
-      #       ./SignOutput/rustdesk-*.exe
-
-      - name: rename rustdesk.exe to filename.exe
-        run: |
-          mv ./SignOutput/rustdesk.exe "./SignOutput/${{ inputs.filename }}.exe" || echo "rustdesk"
-
-      - name: rename rustdesk.msi to filename.msi
-        continue-on-error: true
-        run: |
-          mv ./SignOutput/rustdesk.msi "./SignOutput/${{ inputs.filename }}.msi" || echo "rustdesk"
-
-      # - name: Upload to FTP
-      #   if: ${{ fromJson(inputs.extras).rdgen == 'true' }}
-      #   uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-      #   with:
-      #     server: ${{ secrets.GEN_FTP_SERVER }}
-      #     username: ${{ secrets.GEN_FTP_USER }}
-      #     password: ${{ secrets.GEN_FTP_PASSWORD }}
-      #     local-dir: ./SignOutput/
-      #     server-dir: /root/rdgen/exe/${{ env.UUIDFOLDER }}/
       - name: send file to rdgen server
         if: ${{ fromJson(inputs.extras).rdgen == 'true' }}
         shell: bash

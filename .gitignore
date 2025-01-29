@@ -1,2 +1,6 @@
 *.pyc
 gunicorn.conf
+exe/
+png/
+db.sqlite3
+.gitignore

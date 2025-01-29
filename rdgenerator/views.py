@@ -27,6 +27,7 @@ def generator_view(request):
             xOffline = form.cleaned_data['xOffline']
             hidecm = form.cleaned_data['hidecm']
             statussort = form.cleaned_data['statussort']
+            removeNewVersionNotif = form.cleaned_data['removeNewVersionNotif']
             server = form.cleaned_data['serverIP']
             key = form.cleaned_data['key']
             apiServer = form.cleaned_data['apiServer']
@@ -71,7 +72,7 @@ def generator_view(request):
 
             filename = re.sub(r'[^\w\s-]', '_', filename).strip()
             myuuid = str(uuid.uuid4())
-            protocol = 'https'
+            protocol = 'http'
             host = request.get_host()
             full_url = f"{protocol}://{host}"
             try:
@@ -164,41 +165,42 @@ def generator_view(request):
             extras['xOffline'] = 'true' if xOffline else 'false'
             extras['hidecm'] = 'true' if hidecm else 'false'
             extras['statussort'] = 'true' if statussort else 'false'
+            extras['removeNewVersionNotif'] = 'true' if removeNewVersionNotif else 'false'
             extra_input = json.dumps(extras)
 
             ####from here run the github action, we need user, repo, access token.
             if platform == 'windows':
-                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rdgen/actions/workflows/generator-windows.yml/dispatches' 
+                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/generator-windows.yml/dispatches' 
             elif platform == 'linux':
-                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rdgen/actions/workflows/generator-linux.yml/dispatches'  
+                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/generator-linux.yml/dispatches'  
             elif platform == 'android':
-                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rdgen/actions/workflows/generator-android.yml/dispatches'
+                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/generator-android.yml/dispatches'
             elif platform == 'macos':
-                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rdgen/actions/workflows/generator-macos.yml/dispatches'
+                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/generator-macos.yml/dispatches'
             else:
-                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rdgen/actions/workflows/generator-windows.yml/dispatches'
+                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/generator-windows.yml/dispatches'
             ####changes were made to use hbb_common as a submodule in version 1.3.7, so if 1.3.3 through 1.3.6, use:
             if version == '1.3.3' or version == '1.3.4' or version == '1.3.5' or version == '1.3.6':
                 if platform == 'windows':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rdgen/actions/workflows/pre137-generator-windows.yml/dispatches' 
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre137-generator-windows.yml/dispatches' 
                 elif platform == 'linux':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rdgen/actions/workflows/pre137-generator-linux.yml/dispatches'  
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre137-generator-linux.yml/dispatches'  
                 elif platform == 'android':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rdgen/actions/workflows/pre137-generator-android.yml/dispatches'
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre137-generator-android.yml/dispatches'
                 elif platform == 'macos':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rdgen/actions/workflows/pre137-generator-macos.yml/dispatches'
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre137-generator-macos.yml/dispatches'
                 else:
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rdgen/actions/workflows/pre137-generator-windows.yml/dispatches'
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre137-generator-windows.yml/dispatches'
             ####breaking changes were made in 1.3.3 version, so if 1.3.2 or lower, use:
             if version == '1.3.2' or version == '1.3.1' or version == '1.3.0':
                 if platform == 'windows':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rdgen/actions/workflows/pre133-generator-windows.yml/dispatches' 
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre133-generator-windows.yml/dispatches' 
                 elif platform == 'linux':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rdgen/actions/workflows/pre133-generator-linux.yml/dispatches'  
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre133-generator-linux.yml/dispatches'  
                 elif platform == 'android':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rdgen/actions/workflows/pre133-generator-android.yml/dispatches'
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre133-generator-android.yml/dispatches'
                 else:
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rdgen/actions/workflows/pre133-generator-windows.yml/dispatches'
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre133-generator-windows.yml/dispatches'
 
             #url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rustdesk/actions/workflows/test.yml/dispatches'  
             data = {
@@ -334,7 +336,7 @@ def startgh(request):
     #print(request)
     data_ = json.loads(request.body)
     ####from here run the github action, we need user, repo, access token.
-    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rdgen/actions/workflows/generator-'+data_.get('platform')+'.yml/dispatches'  
+    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/generator-'+data_.get('platform')+'.yml/dispatches'  
     data = {
         "ref":"master",
         "inputs":{
