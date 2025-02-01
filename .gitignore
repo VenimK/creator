@@ -2,3 +2,5 @@
 gunicorn.conf
 exe/
 png/
+db.sqlite3/
+
