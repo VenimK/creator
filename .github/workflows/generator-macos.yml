@@ -161,19 +161,17 @@ jobs:
         continue-on-error: false
         shell: bash
         run: |
-          # MACSTUFF Backup the original Info.plist
+          # MACSTUFF Backup the original files
           cp ./flutter/macos/Runner/Info.plist ./flutter/macos/Runner/Info.plist.bak
-         
-          # MACSTUFF Update application name and display name
-          sed -i '' -e 's|<key>CFBundleName</key>\s*<string>$(PRODUCT_NAME)</string>|<key>CFBundleName</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/macos/Runner/Info.plist
-          sed -i '' -e 's|<key>CFBundleDisplayName</key>\s*<string>$(PRODUCT_NAME)</string>|<key>CFBundleDisplayName</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/macos/Runner/Info.plist
-          sed -i '' -e 's|<key>CFBundleIdentifier</key>\s*<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>|<key>CFBundleIdentifier</key>\n\t<string>com.${{ inputs.appname }}.app</string>|' ./flutter/macos/Runner/Info.plist
-
-          # MACSTUFF Update copyright information if needed
-          sed -i '' -e 's|<key>NSHumanReadableCopyright</key>\s*<string>$(PRODUCT_COPYRIGHT)</string>|<key>NSHumanReadableCopyright</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/macos/Runner/Info.plist
-          
-          # MACSTUFF Update window title and bundle settings
           cp ./flutter/macos/Runner/Configs/AppInfo.xcconfig ./flutter/macos/Runner/Configs/AppInfo.xcconfig.bak
+         
+          # MACSTUFF Update Info.plist
+          sed -i '' -e 's|<key>CFBundleName</key>.*<string>.*</string>|<key>CFBundleName</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/macos/Runner/Info.plist
+          sed -i '' -e 's|<key>CFBundleDisplayName</key>.*<string>.*</string>|<key>CFBundleDisplayName</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/macos/Runner/Info.plist
+          sed -i '' -e 's|<key>CFBundleIdentifier</key>.*<string>.*</string>|<key>CFBundleIdentifier</key>\n\t<string>com.${{ inputs.appname }}.app</string>|' ./flutter/macos/Runner/Info.plist
+          sed -i '' -e 's|<key>NSHumanReadableCopyright</key>.*<string>.*</string>|<key>NSHumanReadableCopyright</key>\n\t<string>${{ inputs.appname }} All rights reserved.</string>|' ./flutter/macos/Runner/Info.plist
+
+          # MACSTUFF Update AppInfo.xcconfig
           sed -i '' -e 's|PRODUCT_NAME = .*|PRODUCT_NAME = ${{ inputs.appname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
           sed -i '' -e 's|PRODUCT_BUNDLE_IDENTIFIER = .*|PRODUCT_BUNDLE_IDENTIFIER = com.${{ inputs.appname }}.app|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
           sed -i '' -e 's|PRODUCT_COPYRIGHT = .*|PRODUCT_COPYRIGHT = ${{ inputs.appname }} All rights reserved.|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
