@@ -18,7 +18,7 @@ env:
 
 jobs:
   generate_bridge:
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: namespace-profile-default
     strategy:
       fail-fast: false
       matrix:
