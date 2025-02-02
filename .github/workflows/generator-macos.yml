@@ -214,30 +214,10 @@ jobs:
           mv ./flutter/pubspec.yaml.tmp ./flutter/pubspec.yaml
           rm ./flutter/temp_dependency.txt
 
-          # Update App Copyright
-          cat > update_copyright.py << 'EOL'
-          import sys
+          # Update desktop_setting_page.dart copyright
+          sed -i '' $'s/Copyright \\${DateTime\\.now().toString()\\.substring(0, 4)} Purslane Ltd\\./Copyright \\${DateTime.now().toString().substring(0, 4)} ${{ inputs.appname }}/g' ./flutter/lib/desktop/pages/desktop_setting_page.dart
           
-          def update_copyright(file_path, app_name):
-              with open(file_path, 'r') as f:
-                  content = f.read()
-              
-              # Replace in Text widget
-              old = "Text('Copyright \${DateTime.now().toString().substring(0, 4)} Purslane Ltd.\n$license')"
-              new = f"Text('Copyright \${DateTime.now().toString().substring(0, 4)} {app_name}\n$license')"
-              content = content.replace(old, new)
-              
-              with open(file_path, 'w') as f:
-                  f.write(content)
-          
-          if __name__ == '__main__':
-              update_copyright(sys.argv[1], sys.argv[2])
-          EOL
-          
-          # Run the Python script
-          python3 update_copyright.py "./flutter/lib/desktop/pages/desktop_setting_page.dart" "${{ inputs.appname }}"
-          
-          # Update project.pbxproj
+          # Update additional copyright references in project.pbxproj
           sed -i '' -e 's/PRODUCT_COPYRIGHT = "Copyright.*"/PRODUCT_COPYRIGHT = "Copyright 2025 ${{ inputs.appname }}. All rights reserved."/' ./flutter/macos/Runner.xcodeproj/project.pbxproj
           
           # Update any copyright strings in Runner.rc if it exists
