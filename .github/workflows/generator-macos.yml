@@ -214,6 +214,8 @@ jobs:
           mv ./flutter/pubspec.yaml.tmp ./flutter/pubspec.yaml
           rm ./flutter/temp_dependency.txt
 
+          sed -i '' -e "s|'Copyright \u00A9 \${DateTime.now().toString().substring(0, 4)} Purslane Ltd.\n\$license'|'Copyright \u00A9 \${DateTime.now().toString().substring(0, 4)} \${{ inputs.appname }}\n\$license'|" ./flutter/lib/desktop/pages/desktop_setting_page.dart
+
       - name: Report Status - Pre Build
         uses: fjogeleit/http-request-action@v1
         with:
