@@ -169,12 +169,12 @@ jobs:
           sed -i '' -e 's|<key>CFBundleName</key>.*<string>.*</string>|<key>CFBundleName</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/macos/Runner/Info.plist
           sed -i '' -e 's|<key>CFBundleDisplayName</key>.*<string>.*</string>|<key>CFBundleDisplayName</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/macos/Runner/Info.plist
           sed -i '' -e 's|<key>CFBundleIdentifier</key>.*<string>.*</string>|<key>CFBundleIdentifier</key>\n\t<string>com.${{ inputs.appname }}.app</string>|' ./flutter/macos/Runner/Info.plist
-          sed -i '' -e 's|<key>NSHumanReadableCopyright</key>.*<string>.*</string>|<key>NSHumanReadableCopyright</key>\n\t<string>${{ inputs.appname }} All rights reserved.</string>|' ./flutter/macos/Runner/Info.plist
+          sed -i '' -e 's|<key>NSHumanReadableCopyright</key>.*<string>.*</string>|<key>NSHumanReadableCopyright</key>\n\t<string>Copyright 2025 ${{ inputs.appname }}. All rights reserved.</string>|' ./flutter/macos/Runner/Info.plist
 
           # MACSTUFF Update AppInfo.xcconfig
           sed -i '' -e 's|PRODUCT_NAME = .*|PRODUCT_NAME = ${{ inputs.appname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
           sed -i '' -e 's|PRODUCT_BUNDLE_IDENTIFIER = .*|PRODUCT_BUNDLE_IDENTIFIER = com.${{ inputs.appname }}.app|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
-          sed -i '' -e 's|PRODUCT_COPYRIGHT = .*|PRODUCT_COPYRIGHT = ${{ inputs.appname }} All rights reserved.|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
+          sed -i '' -e 's|PRODUCT_COPYRIGHT = .*|PRODUCT_COPYRIGHT = Copyright 2025 ${{ inputs.appname }}. All rights reserved.|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
           # Keep DEVELOPMENT_TEAM if it exists, don't blank it out
           
           # Update Xcode project settings
@@ -203,7 +203,6 @@ jobs:
           sed -i '' -e "s|const url = 'https://rustdesk.com/';|const url = '${{ fromJson(inputs.extras).urlLink }}';|" ./flutter/lib/mobile/pages/settings_page.dart
           sed -i '' -e "s|launchUrlString('https://rustdesk.com/privacy.html')|launchUrlString('${{ fromJson(inputs.extras).urlLink }}/privacy.html')|" ./flutter/lib/mobile/pages/settings_page.dart
           sed -i '' -e "s|https://rustdesk.com/privacy.html|${{ fromJson(inputs.extras).urlLink }}/privacy.html|" ./flutter/lib/desktop/pages/install_page.dart
-           sed -i '' -e "s|'Copyright \u00A9 \${DateTime.now().toString().substring(0, 4)} Purslane Ltd.\n\$license'|'Copyright \u00A9 \${DateTime.now().toString().substring(0, 4)} \${{ inputs.appname }}\n\$license'|" ./flutter/lib/desktop/pages/desktop_setting_page.dart
             
           sed -i '' -e '/const KEY:/,/};/d' ./src/common.rs
           sed -i '' -e '/let Ok(data) = sign::verify(&data, &pk)/,/};/d' ./src/common.rs
@@ -214,6 +213,17 @@ jobs:
           awk '/intl:/{print;system("cat ./flutter/temp_dependency.txt");next}1' ./flutter/pubspec.yaml > ./flutter/pubspec.yaml.tmp
           mv ./flutter/pubspec.yaml.tmp ./flutter/pubspec.yaml
           rm ./flutter/temp_dependency.txt
+
+          # Update desktop_setting_page.dart copyright
+          sed -i '' $'s/Copyright \\${DateTime\\.now().toString()\\.substring(0, 4)} Purslane Ltd\\./Copyright \\${DateTime.now().toString().substring(0, 4)} ${{ inputs.appname }}/g' ./flutter/lib/desktop/pages/desktop_setting_page.dart
+          
+          # Update additional copyright references in project.pbxproj
+          sed -i '' -e 's/PRODUCT_COPYRIGHT = "Copyright.*"/PRODUCT_COPYRIGHT = "Copyright 2025 ${{ inputs.appname }}. All rights reserved."/' ./flutter/macos/Runner.xcodeproj/project.pbxproj
+          
+          # Update any copyright strings in Runner.rc if it exists
+          if [ -f "./flutter/macos/Runner/Runner.rc" ]; then
+            sed -i '' -e 's|"Copyright.*"|"Copyright 2025 ${{ inputs.appname }}. All rights reserved."|' ./flutter/macos/Runner/Runner.rc
+          fi
 
       - name: Report Status - Pre Build
         uses: fjogeleit/http-request-action@v1
