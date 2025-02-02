@@ -18,7 +18,7 @@ env:
 
 jobs:
   generate_bridge:
-    runs-on: ${{ matrix.job.os }}
+    runs-on: buildjet-4vcpu-ubuntu-2204
     strategy:
       fail-fast: false
       matrix:
