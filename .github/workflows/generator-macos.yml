@@ -169,7 +169,7 @@ jobs:
           sed -i '' -e 's|<key>CFBundleName</key>.*<string>.*</string>|<key>CFBundleName</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/macos/Runner/Info.plist
           sed -i '' -e 's|<key>CFBundleDisplayName</key>.*<string>.*</string>|<key>CFBundleDisplayName</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/macos/Runner/Info.plist
           sed -i '' -e 's|<key>CFBundleIdentifier</key>.*<string>.*</string>|<key>CFBundleIdentifier</key>\n\t<string>com.${{ inputs.appname }}.app</string>|' ./flutter/macos/Runner/Info.plist
-          sed -i '' '/<key>NSHumanReadableCopyright<\/key>/{n;s/<string>.*<\/string>/<string>Copyright 2025 ${{ inputs.appname }}. All rights reserved.<\/string>/;}' flutter/macos/Runner/Info.plist
+          sed -i '' '/<key>NSHumanReadableCopyright<\/key>/{n;s/<string>.*<\/string>/<string>Copyright 2025 ${{ inputs.appname }}. All rights reserved.<\/string>/;}' .flutter/macos/Runner/Info.plist
           
           # MACSTUFF Update AppInfo.xcconfig
           sed -i '' -e 's|PRODUCT_NAME = .*|PRODUCT_NAME = ${{ inputs.appname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
