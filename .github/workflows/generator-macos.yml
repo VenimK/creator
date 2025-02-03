@@ -158,7 +158,6 @@ jobs:
           echo "$(brew --prefix imagemagick)/bin" >> $GITHUB_PATH
 
       - name: Update macOS Info.plist and settings
-        if: inputs.appname != 'rustdesk'
         continue-on-error: false
         shell: bash
         run: |
