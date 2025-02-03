@@ -212,7 +212,7 @@ jobs:
           sed -i '' -e 's/("Slogan_tip", "Ontwikkeld met het hart voor deze chaotische wereld!")/("Slogan_tip", "Powered by ${{ inputs.appname }}")/' ./src/lang/nl.rs
           
           # Update your desktop
-          sed -i '' -e 's/("Your Desktop", "Uw Bureaublad")/("Your Desktop", "Your ${{ inputs.appname }}")/' ./src/lang/nl.rs
+          sed -i '' -e 's/("Your Desktop", "Uw Bureaublad")/("Your Desktop", "Uw ${{ inputs.appname }}")/' ./src/lang/nl.rs
           sed -i '' -e 's/("Your Desktop", "Your Desktop")/("Your Desktop", "Your ${{ inputs.appname }}")/' ./src/lang/en.rs
             
           # Update About text
