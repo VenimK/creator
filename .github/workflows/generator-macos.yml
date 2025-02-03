@@ -158,9 +158,20 @@ jobs:
           echo "$(brew --prefix imagemagick)/bin" >> $GITHUB_PATH
 
       - name: Update macOS Info.plist and settings
+        if: inputs.appname != 'rustdesk'
         continue-on-error: false
         shell: bash
         run: |
+
+          # Update package metadata
+          sed -i '' -e 's/name = "rustdesk"/name = "${{ inputs.filename }}"/' ./Cargo.toml
+          sed -i '' -e 's/authors = \["rustdesk <info@rustdesk.com>"\]/authors = ["${{ inputs.appname }} <techmusiclover@outlook.be>"]/' ./Cargo.toml
+          sed -i '' -e 's/description = "RustDesk Remote Desktop"/description = "${{ inputs.appname }} Remote Desktop"/' ./Cargo.toml
+                             
+          # Update bundle metadata
+          sed -i '' -e 's/name = "RustDesk"/name = "${{ inputs.appname }}"/' ./Cargo.toml
+          sed -i '' -e 's/identifier = "com.carriez.rustdesk"/identifier = "com.${{ inputs.appname }}.app"/' ./Cargo.toml
+          
           # MACSTUFF Backup the original files
           cp ./flutter/macos/Runner/Info.plist ./flutter/macos/Runner/Info.plist.bak
           cp ./flutter/macos/Runner/Configs/AppInfo.xcconfig ./flutter/macos/Runner/Configs/AppInfo.xcconfig.bak
