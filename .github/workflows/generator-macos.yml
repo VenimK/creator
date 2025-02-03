@@ -168,7 +168,6 @@ jobs:
           sed -i '' -e 's/description = "RustDesk Remote Desktop"/description = "${{ inputs.appname }} Remote Desktop"/' ./Cargo.toml
                              
           # Update bundle metadata
-          sed -i '' -e 's/name = "RustDesk"/name = "${{ inputs.appname }}"/' ./Cargo.toml
           sed -i '' -e 's/identifier = "com.carriez.rustdesk"/identifier = "com.${{ inputs.appname }}.app"/' ./Cargo.toml
           
           # MACSTUFF Backup the original files
