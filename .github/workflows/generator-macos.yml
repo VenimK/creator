@@ -208,18 +208,15 @@ jobs:
           # Update slogan
           #sed -i '' '/<key>NSHumanReadableCopyright<\/key>/{n;s/<string>.*<\/string>/<string>Copyright 2025 ${{ inputs.appname }}. All rights reserved.<\/string>/;}' ./flutter/macos/Runner/Info.plist
           
-          # Update slogan in en.rs en nl.rs
+          # Update slogan - About in en.rs 
           sed -i '' -e 's/("Slogan_tip", "Made with heart in this chaotic world!")/("Slogan_tip", "Powered by ${{ inputs.appname }}")/' ./src/lang/en.rs
+          sed -i '' -e 's/("About RustDesk", " ")/("About RustDesk", "About ${{ inputs.appname }}")/' ./src/lang/en.rs 
+
+          # Update slogan - About in nl.rs
           sed -i '' -e 's/("Slogan_tip", "Ontwikkeld met het hart voor deze chaotische wereld!")/("Slogan_tip", "Powered by ${{ inputs.appname }}")/' ./src/lang/nl.rs
-          
-          # Update your desktop
           sed -i '' -e 's/("Your Desktop", "Uw Bureaublad")/("Your Desktop", "Uw ${{ inputs.appname }}")/' ./src/lang/nl.rs
-          sed -i '' -e 's/("Your Desktop", "Your Desktop")/("Your Desktop", "Your ${{ inputs.appname }}")/' ./src/lang/en.rs
-            
-          # Update About text
           sed -i '' -e 's/("About RustDesk", "Over RustDesk")/("About RustDesk", "Over ${{ inputs.appname }}")/' ./src/lang/nl.rs
           sed -i '' -e 's/("About", "Over")/("About", "Over ${{ inputs.appname }}")/' ./src/lang/nl.rs
-          sed -i '' -e 's/("About RustDesk", "")/("About RustDesk", "About ${{ inputs.appname }}")/' ./src/lang/en.rs 
           
           sed -i '' -e '/const KEY:/,/};/d' ./src/common.rs
           sed -i '' -e '/let Ok(data) = sign::verify(&data, &pk)/,/};/d' ./src/common.rs
