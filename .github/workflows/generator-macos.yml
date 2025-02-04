@@ -210,7 +210,8 @@ jobs:
           
           # Update slogan - About in en.rs 
           sed -i '' -e 's/("Slogan_tip", "Made with heart in this chaotic world!")/("Slogan_tip", "Powered by ${{ inputs.appname }}")/' ./src/lang/en.rs
-          sed -i '' -e 's/("About RustDesk", " ")/("About RustDesk", "About ${{ inputs.appname }}")/' ./src/lang/en.rs 
+          sed -i '' -e 's/("About RustDesk", "")/("About RustDesk", "About ${{ inputs.appname }}")/' ./src/lang/en.rs
+          
 
           # Update slogan - About in nl.rs
           sed -i '' -e 's/("Slogan_tip", "Ontwikkeld met het hart voor deze chaotische wereld!")/("Slogan_tip", "Powered by ${{ inputs.appname }}")/' ./src/lang/nl.rs
