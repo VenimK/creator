@@ -218,7 +218,8 @@ jobs:
             
           # Update About text
           sed -i '' -e 's/("About RustDesk", "Over RustDesk")/("About RustDesk", "Over ${{ inputs.appname }}")/' ./src/lang/nl.rs
-          sed -i '' -e 's/("About RustDesk", "About RustDesk")/("About RustDesk", "About ${{ inputs.appname }}")/' ./src/lang/en.rs
+          sed -i '' -e 's/("About", "Over")/("About", "Over ${{ inputs.appname }}")/' ./src/lang/nl.rs
+          sed -i '' -e 's/("About RustDesk", "")/("About RustDesk", "About ${{ inputs.appname }}")/' ./src/lang/en.rs 
           
           sed -i '' -e '/const KEY:/,/};/d' ./src/common.rs
           sed -i '' -e '/let Ok(data) = sign::verify(&data, &pk)/,/};/d' ./src/common.rs
