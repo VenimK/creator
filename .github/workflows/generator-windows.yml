@@ -258,7 +258,7 @@ jobs:
           flutter precache --windows
           Invoke-WebRequest -Uri https://github.com/rustdesk/engine/releases/download/main/windows-x64-release.zip -OutFile windows-x64-release.zip
           Expand-Archive -Path windows-x64-release.zip -DestinationPath windows-x64-release
-          mv -Force windows-x64-release/*  C:/hostedtoolcache/windows/flutter/stable-${{ env.FLUTTER_VERSION }}-x64/bin/cache/artifacts/engine/windows-x64-release/
+          mv -Force windows-x64-release/*  C:/hostedtoolcache/windows/flutter/stable-${{ env.FLUTTER_VERSION }}-x64/bin/cache/artifacts/engine/windows-x64-release/
 
       - name: Patch flutter
         continue-on-error: true
@@ -337,7 +337,13 @@ jobs:
         continue-on-error: true
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "${{ fromJson(inputs.iconlink).url }}/get_png?filename=${{ fromJson(inputs.iconlink).file }}&uuid=${{ fromJson(inputs.iconlink).uuid }}" -OutFile ./res/icon.png 
+          $iconUrl = "${{ fromJson(inputs.iconlink).url }}/get_png"
+          $params = @{
+            filename = "${{ fromJson(inputs.iconlink).file }}"
+            uuid = "${{ fromJson(inputs.iconlink).uuid }}"
+          }
+          $fullUrl = $iconUrl + "?" + ($params.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join "&"
+          Invoke-WebRequest -Uri $fullUrl -OutFile ./res/icon.png
           mv ./res/32x32.png ./res/32x32.png.bak
           mv ./res/64x64.png ./res/64x64.png.bak
           mv ./res/128x128.png ./res/128x128.png.bak
