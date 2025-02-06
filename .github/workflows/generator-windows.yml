@@ -322,21 +322,15 @@ jobs:
           head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
         shell: bash
 
-      - name: icon stuff
-        if: ${{ inputs.iconlink != 'false' }}
-        continue-on-error: true
-        shell: bash
-        run: |
-          mv ./res/icon.ico ./res/icon.ico.bak
-          mv ./res/icon.png ./res/icon.png.bak
-          mv ./res/tray-icon.ico ./res/tray-icon.ico.bak
-          #echo "${{ inputs.iconbase64 }}" | base64 -d > ./res/icon.png 
-
-      - name: magick stuff
+      - name: Download and prepare icon
         if: ${{ inputs.iconlink != 'false' }}
         continue-on-error: true
         shell: pwsh
         run: |
+          # Create res directory if it doesn't exist
+          New-Item -ItemType Directory -Force -Path ./res
+          
+          # Download icon
           $iconUrl = "${{ fromJson(inputs.iconlink).url }}/get_png"
           $params = @{
             filename = "${{ fromJson(inputs.iconlink).file }}"
@@ -344,18 +338,32 @@ jobs:
           }
           $fullUrl = $iconUrl + "?" + ($params.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join "&"
           Invoke-WebRequest -Uri $fullUrl -OutFile ./res/icon.png
-          mv ./res/32x32.png ./res/32x32.png.bak
-          mv ./res/64x64.png ./res/64x64.png.bak
-          mv ./res/128x128.png ./res/128x128.png.bak
-          mv ./res/128x128@2x.png ./res/128x128@2x.png.bak
+          
+          # Make a copy for Flutter Launcher Icons
+          Copy-Item ./res/icon.png ./res/icon.png.bak
+
+      - name: Generate icons
+        if: ${{ inputs.iconlink != 'false' }}
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          # Backup existing icons
+          if (Test-Path ./res/32x32.png) { Move-Item ./res/32x32.png ./res/32x32.png.bak -Force }
+          if (Test-Path ./res/64x64.png) { Move-Item ./res/64x64.png ./res/64x64.png.bak -Force }
+          if (Test-Path ./res/128x128.png) { Move-Item ./res/128x128.png ./res/128x128.png.bak -Force }
+          if (Test-Path ./res/128x128@2x.png) { Move-Item ./res/128x128@2x.png ./res/128x128@2x.png.bak -Force }
+          
+          # Generate different sizes
           magick ./res/icon.png -resize 32x32 ./res/32x32.png
           magick ./res/icon.png -resize 64x64 ./res/64x64.png
           magick ./res/icon.png -resize 128x128 ./res/128x128.png
           magick ./res/icon.png -resize 256x256 ./res/128x128@2x.png
+          
+          # Generate ICO files
           magick convert ./res/icon.png -define icon:auto-resize=256,128,64,32 ./res/tray-icon.ico
-          cp ./res/tray-icon.ico ./res/icon.ico
+          Copy-Item ./res/tray-icon.ico ./res/icon.ico -Force
 
-      - name: ui.rs icon
+      - name: Configure Flutter Launcher Icons
         if: ${{ inputs.iconlink != 'false' }}
         continue-on-error: true
         shell: bash
@@ -428,8 +436,29 @@ jobs:
         if: ${{ inputs.iconlink != 'false' }}
         continue-on-error: true
         run: |
-          cd ./flutter
-          flutter pub upgrade win32
+          # Add flutter_launcher_icons to pubspec.yaml
+          cat >> flutter/pubspec.yaml << EOL
+          
+          dev_dependencies:
+            flutter_launcher_icons: ^0.13.1
+          EOL
+          
+          # Create flutter_launcher_icons.yaml
+          cat > flutter/flutter_launcher_icons.yaml << EOL
+          flutter_launcher_icons:
+            android: true
+            ios: true
+            image_path: "../res/icon_flutter.png"
+            windows:
+              generate: true
+              image_path: "../res/icon_flutter.png"
+              icon_size: 48
+            macos:
+              generate: true
+              image_path: "../res/icon_flutter.png"
+          EOL
+          
+          cd flutter
           flutter pub get
           flutter pub run flutter_launcher_icons
           cd ..
@@ -510,7 +539,7 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "70% complete, this step takes about 5 minutes, be patient."}'
-      
+
       - name: zip dlls
         continue-on-error: true
         shell: pwsh
