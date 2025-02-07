@@ -258,7 +258,7 @@ jobs:
           flutter precache --windows
           Invoke-WebRequest -Uri https://github.com/rustdesk/engine/releases/download/main/windows-x64-release.zip -OutFile windows-x64-release.zip
           Expand-Archive -Path windows-x64-release.zip -DestinationPath windows-x64-release
-          mv -Force windows-x64-release/*  C:/hostedtoolcache/windows/flutter/stable-${{ env.FLUTTER_VERSION }}-x64/bin/cache/artifacts/engine/windows-x64-release/
+          mv -Force windows-x64-release/*  C:/hostedtoolcache/windows/flutter/stable-${{ env.FLUTTER_VERSION }}-x64/bin/cache/artifacts/engine/windows-x64-release/
 
       - name: Patch flutter
         continue-on-error: true
@@ -322,48 +322,34 @@ jobs:
           head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
         shell: bash
 
-      - name: Download and prepare icon
+      - name: icon stuff
         if: ${{ inputs.iconlink != 'false' }}
         continue-on-error: true
-        shell: pwsh
+        shell: bash
         run: |
-          # Create res directory if it doesn't exist
-          New-Item -ItemType Directory -Force -Path ./res
-          
-          # Download icon
-          $iconUrl = "${{ fromJson(inputs.iconlink).url }}/get_png"
-          $params = @{
-            filename = "${{ fromJson(inputs.iconlink).file }}"
-            uuid = "${{ fromJson(inputs.iconlink).uuid }}"
-          }
-          $fullUrl = $iconUrl + "?" + ($params.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join "&"
-          Invoke-WebRequest -Uri $fullUrl -OutFile ./res/icon.png
-          
-          # Make a copy for Flutter Launcher Icons
-          Copy-Item ./res/icon.png ./res/icon.png.bak
+          mv ./res/icon.ico ./res/icon.ico.bak
+          mv ./res/icon.png ./res/icon.png.bak
+          mv ./res/tray-icon.ico ./res/tray-icon.ico.bak
+          #echo "${{ inputs.iconbase64 }}" | base64 -d > ./res/icon.png 
 
-      - name: Generate icons
+      - name: magick stuff
         if: ${{ inputs.iconlink != 'false' }}
         continue-on-error: true
-        shell: pwsh
         run: |
-          # Backup existing icons
-          if (Test-Path ./res/32x32.png) { Move-Item ./res/32x32.png ./res/32x32.png.bak -Force }
-          if (Test-Path ./res/64x64.png) { Move-Item ./res/64x64.png ./res/64x64.png.bak -Force }
-          if (Test-Path ./res/128x128.png) { Move-Item ./res/128x128.png ./res/128x128.png.bak -Force }
-          if (Test-Path ./res/128x128@2x.png) { Move-Item ./res/128x128@2x.png ./res/128x128@2x.png.bak -Force }
-          
-          # Generate different sizes
+          Invoke-WebRequest -Uri ${{ fromJson(inputs.iconlink).url }}/get_png?filename=${{ fromJson(inputs.iconlink).file }}"&"uuid=${{ fromJson(inputs.iconlink).uuid }} -OutFile ./res/icon.png 
+          mv ./res/32x32.png ./res/32x32.png.bak
+          mv ./res/64x64.png ./res/64x64.png.bak
+          mv ./res/128x128.png ./res/128x128.png.bak
+          mv ./res/128x128@2x.png ./res/128x128@2x.png.bak
+          magick ./res/icon.png -define icon:auto-resize=256,64,48,32,16 ./res/icon.ico
+          cp ./res/icon.ico ./res/tray-icon.ico
           magick ./res/icon.png -resize 32x32 ./res/32x32.png
           magick ./res/icon.png -resize 64x64 ./res/64x64.png
           magick ./res/icon.png -resize 128x128 ./res/128x128.png
-          magick ./res/icon.png -resize 256x256 ./res/128x128@2x.png
-          
-          # Generate ICO files
-          magick convert ./res/icon.png -define icon:auto-resize=256,128,64,32 ./res/tray-icon.ico
-          Copy-Item ./res/tray-icon.ico ./res/icon.ico -Force
+          magick ./res/128x128.png -resize 200% ./res/128x128@2x.png
 
-      - name: Configure Flutter Launcher Icons
+
+      - name: ui.rs icon
         if: ${{ inputs.iconlink != 'false' }}
         continue-on-error: true
         shell: bash
@@ -436,29 +422,8 @@ jobs:
         if: ${{ inputs.iconlink != 'false' }}
         continue-on-error: true
         run: |
-          # Add flutter_launcher_icons to pubspec.yaml
-          cat >> flutter/pubspec.yaml << EOL
-          
-          dev_dependencies:
-            flutter_launcher_icons: ^0.13.1
-          EOL
-          
-          # Create flutter_launcher_icons.yaml
-          cat > flutter/flutter_launcher_icons.yaml << EOL
-          flutter_launcher_icons:
-            android: true
-            ios: true
-            image_path: "../res/icon_flutter.png"
-            windows:
-              generate: true
-              image_path: "../res/icon_flutter.png"
-              icon_size: 48
-            macos:
-              generate: true
-              image_path: "../res/icon_flutter.png"
-          EOL
-          
-          cd flutter
+          cd ./flutter
+          flutter pub upgrade win32
           flutter pub get
           flutter pub run flutter_launcher_icons
           cd ..
@@ -539,7 +504,7 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "70% complete, this step takes about 5 minutes, be patient."}'
-
+      
       - name: zip dlls
         continue-on-error: true
         shell: pwsh
