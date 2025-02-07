@@ -86,7 +86,6 @@ def generator_view(request):
             except:
                 print("failed to get icon, using default")
                 iconlink = "false"
-
             try:
                 logofile = form.cleaned_data.get('logofile')
                 if not logofile:
