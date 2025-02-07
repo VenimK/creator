@@ -451,8 +451,7 @@ jobs:
             # output devs
             ls -l ./
             tree -L 3 /opt/artifacts/vcpkg/installed
-          run: |
-            # disable git safe.directory
+             run: # disable git safe.directory
             git config --global --add safe.directory "*"
             # rust
             pushd /opt
