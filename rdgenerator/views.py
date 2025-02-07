@@ -75,14 +75,14 @@ def generator_view(request):
 
             filename = re.sub(r'[^\w\s-]', '_', filename).strip()
             myuuid = str(uuid.uuid4())
-            protocol = 'http'
+            protocol = _settings.PROTOCOL
             host = request.get_host()
             full_url = f"{protocol}://{host}"
             try:
-                iconfile = form.cleaned_data.get('iconfile')        
+                iconfile = form.cleaned_data.get('iconfile')
                 if not iconfile:
                     iconfile = form.cleaned_data.get('iconbase64')
-                iconlink = save_png(iconfile,myuuid,full_url,"icon.png")        
+                iconlink = save_png(iconfile,myuuid,full_url,"icon.png")
             except:
                 print("failed to get icon, using default")
                 iconlink = "false"
@@ -90,7 +90,7 @@ def generator_view(request):
                 logofile = form.cleaned_data.get('logofile')
                 if not logofile:
                     logofile = form.cleaned_data.get('logobase64')
-                logolink = save_png(logofile, myuuid, full_url, "logo.png")
+                logolink = save_png(logofile,myuuid,full_url,"logo.png")
             except:
                 print("failed to get logo")
                 logolink = "false"
@@ -174,37 +174,37 @@ def generator_view(request):
 
             ####from here run the github action, we need user, repo, access token.
             if platform == 'windows':
-                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/generator-windows.yml/dispatches' 
+                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-windows.yml/dispatches' 
             elif platform == 'linux':
-                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/generator-linux.yml/dispatches'  
+                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-linux.yml/dispatches'  
             elif platform == 'android':
-                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/generator-android.yml/dispatches'
+                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-android.yml/dispatches'
             elif platform == 'macos':
-                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/generator-macos.yml/dispatches'
+                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-macos.yml/dispatches'
             else:
-                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/generator-windows.yml/dispatches'
+                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-windows.yml/dispatches'
             ####changes were made to use hbb_common as a submodule in version 1.3.7, so if 1.3.3 through 1.3.6, use:
             if version == '1.3.3' or version == '1.3.4' or version == '1.3.5' or version == '1.3.6':
                 if platform == 'windows':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre137-generator-windows.yml/dispatches' 
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/pre137-generator-windows.yml/dispatches' 
                 elif platform == 'linux':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre137-generator-linux.yml/dispatches'  
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/pre137-generator-linux.yml/dispatches'  
                 elif platform == 'android':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre137-generator-android.yml/dispatches'
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/pre137-generator-android.yml/dispatches'
                 elif platform == 'macos':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre137-generator-macos.yml/dispatches'
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/pre137-generator-macos.yml/dispatches'
                 else:
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre137-generator-windows.yml/dispatches'
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/pre137-generator-windows.yml/dispatches'
             ####breaking changes were made in 1.3.3 version, so if 1.3.2 or lower, use:
             if version == '1.3.2' or version == '1.3.1' or version == '1.3.0':
                 if platform == 'windows':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre133-generator-windows.yml/dispatches' 
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/pre133-generator-windows.yml/dispatches' 
                 elif platform == 'linux':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre133-generator-linux.yml/dispatches'  
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/pre133-generator-linux.yml/dispatches'  
                 elif platform == 'android':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre133-generator-android.yml/dispatches'
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/pre133-generator-android.yml/dispatches'
                 else:
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/pre133-generator-windows.yml/dispatches'
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/pre133-generator-windows.yml/dispatches'
 
             #url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rustdesk/actions/workflows/test.yml/dispatches'  
             data = {
@@ -340,7 +340,7 @@ def startgh(request):
     #print(request)
     data_ = json.loads(request.body)
     ####from here run the github action, we need user, repo, access token.
-    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/creator/actions/workflows/generator-'+data_.get('platform')+'.yml/dispatches'  
+    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-'+data_.get('platform')+'.yml/dispatches'  
     data = {
         "ref":"master",
         "inputs":{
@@ -367,36 +367,30 @@ def startgh(request):
     return HttpResponse(status=204)
 
 def save_png(file, uuid, domain, name):
-    if not file:
-        return None
-
     file_save_path = "png/%s/%s" % (uuid, name)
     Path("png/%s" % uuid).mkdir(parents=True, exist_ok=True)
 
-    try:
-        if isinstance(file, str):  # Handle base64 string
-            try:
-                if ';base64,' in file:
-                    header, encoded = file.split(';base64,')
-                    decoded_img = base64.b64decode(encoded)
-                else:
-                    decoded_img = base64.b64decode(file)
-                with open(file_save_path, "wb") as f:
-                    f.write(decoded_img)
-            except Exception as e:
-                print(f"Error processing base64 data: {e}")
-                return None
-        else:  # Handle file upload
-            with open(file_save_path, "wb") as f:
-                for chunk in file.chunks():
-                    f.write(chunk)
-
-        imageJson = {}
-        imageJson['url'] = "%s/png/%s/%s" % (domain, uuid, name)
-        return imageJson['url']
-    except Exception as e:
-        print(f"Error saving PNG file: {e}")
-        return None
+    if isinstance(file, str):  # Check if it's a base64 string
+        try:
+            header, encoded = file.split(';base64,')
+            decoded_img = base64.b64decode(encoded)
+            file = ContentFile(decoded_img, name=name) # Create a file-like object
+        except ValueError:
+            print("Invalid base64 data")
+            return None  # Or handle the error as you see fit
+        except Exception as e:  # Catch general exceptions during decoding
+            print(f"Error decoding base64: {e}")
+            return None
+        
+    with open(file_save_path, "wb+") as f:
+        for chunk in file.chunks():
+            f.write(chunk)
+    imageJson = {}
+    imageJson['url'] = domain
+    imageJson['uuid'] = uuid
+    imageJson['file'] = name
+    #return "%s/%s" % (domain, file_save_path)
+    return json.dumps(imageJson)
 
 def save_custom_client(request):
     file = request.FILES['file']
