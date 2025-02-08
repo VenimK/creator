@@ -249,7 +249,7 @@ jobs:
           url: ${{ env.STATUS_URL }}
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "20% complete"}'
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "10% complete"}'
 
       - name: Install flutter
         uses: subosito/flutter-action@v2.12.0
@@ -493,7 +493,7 @@ jobs:
           url: ${{ env.STATUS_URL }}
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "20% complete"}'
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "30% complete"}'
 
       - name: Create MacOS directory structure
         run: |
@@ -526,7 +526,7 @@ jobs:
           url: ${{ env.STATUS_URL }}
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "25% complete"}'
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "50% complete"}'
      
 
       - name: Build rustdesk
@@ -547,7 +547,7 @@ jobs:
           url: ${{ env.STATUS_URL }}
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "80% complete"}'
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "60% complete"}'
 
       # - name: Copy service file
       #   run: |
