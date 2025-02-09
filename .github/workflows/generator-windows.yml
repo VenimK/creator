@@ -480,13 +480,14 @@ jobs:
         with:
           name: topmostwindow-artifacts
           path: "./rustdesk"
-
-      - name: Upload unsigned
-        if: env.UPLOAD_ARTIFACT == 'true'
-        uses: actions/upload-artifact@master
+   
+      - name: Report Status
+        uses: fjogeleit/http-request-action@v1
         with:
-          name: rustdesk-unsigned-windows-${{ matrix.job.arch }}
-          path: rustdesk
+          url: ${{ env.STATUS_URL }}
+          method: 'POST'
+          customHeaders: '{"Content-Type": "application/json"}'
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "70% complete, this step takes about 5 minutes, be patient."}'
 
       - name: zip dlls
         continue-on-error: true
@@ -576,7 +577,13 @@ jobs:
             echo "Signing skipped - signing URL or API key not configured"
             cp ./SignOutput/unsigned_files.zip ./SignOutput/signed_files.zip
           fi
-              
+      
+      - name: unzip exe and msi
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          Expand-Archive -Path ./SignOutput/signed_files.zip -DestinationPath ./SignOutput/ -Force
+      
       - name: rename rustdesk.exe to filename.exe
         run: |
           mv ./SignOutput/rustdesk.exe "./SignOutput/${{ inputs.filename }}.exe" || echo "rustdesk"
