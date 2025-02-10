@@ -119,8 +119,8 @@ jobs:
       - name: Setup vcpkg with Github Actions binary cache
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
-          doNotCache: false
+            vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
+            doNotCache: false
 
       - name: Install vcpkg dependencies
         run: |
@@ -133,10 +133,9 @@ jobs:
               cat "$_1"
               echo "======"
               echo ""
-            done
+              done
+              exit 1
           fi
-          head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
-        shell: bash
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@v1
