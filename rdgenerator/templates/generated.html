@@ -139,6 +139,8 @@
                 <a href='/download?filename={{filename}}-armv7.apk&uuid={{uuid}}' class="download-link">Download {{filename}}-armv7.apk</a>
             {% elif platform == 'macos' %}
                 <a href='/download?filename={{filename}}.dmg&uuid={{uuid}}' class="download-link">Download {{filename}}.dmg</a>
+            {% elif platform == 'ios' %}
+                <a href='/download?filename={{filename}}.ipa&uuid={{uuid}}' class="download-link">Download {{filename}}.ipa</a>
             {% else %}
                 <p>Error: No file generated</p>
             {% endif %}
@@ -182,6 +184,10 @@
                 platformLogos.android.style.display = 'block';
                 platformNote.textContent = 'Note: You may need to enable "Unknown Sources" in device settings.';
                 platformNote.style.display = 'block';
+            } else if (platform === 'ios') {
+                document.getElementById('pageTitle').textContent = 'iOS Build Generated';
+                platformNote.textContent = 'Note: You may need to enable "Unknown Sources" in device settings.';
+                platformNote.style.display = 'block';
             }
         }
 
@@ -189,4 +195,4 @@
         updatePlatformUI();
     </script>
 </body>
-</html>{{ ... }}
+</html>
