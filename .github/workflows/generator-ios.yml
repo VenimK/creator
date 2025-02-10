@@ -67,7 +67,7 @@ env:
   STATUS_URL: "${{ secrets.GENURL }}/updategh"
 
 jobs:
-  generate-bridge:
+  generate_bridge:
     uses: ./.github/workflows/bridge.yml
     with:
       version: ${{ fromJson(inputs.extras).version }}
@@ -75,7 +75,7 @@ jobs:
 
   build-for-ios:
     name: Build iOS
-    needs: [generate-bridge]
+    needs: [generate_bridge]
     runs-on: ${{ matrix.job.os }}
     strategy:
       fail-fast: false
@@ -87,7 +87,7 @@ jobs:
               arch: aarch64,
               vcpkg-triplet: arm64-ios,
             }     
-   steps:
+    steps:
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
         with:
