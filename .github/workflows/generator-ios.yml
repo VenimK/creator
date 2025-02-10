@@ -57,6 +57,7 @@ on:
 env:
   FLUTTER_VERSION: "3.24.5"
   VERSION: "${{ fromJson(inputs.extras).version }}"
+  MAC_RUST_VERSION: "1.81" 
   RS_PUB_KEY: "${{ inputs.key }}"
   RENDEZVOUS_SERVER: "${{ inputs.server }}"
   CUSTOM: "${{ inputs.custom }}"
@@ -167,7 +168,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@v1
         with:
-          toolchain: ${{ env.RUST_VERSION }}
+          toolchain: ${{ env.MAC_RUST_VERSION }}
           targets: ${{ matrix.job.target }}
           components: "rustfmt"
 
