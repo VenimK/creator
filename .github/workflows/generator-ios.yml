@@ -76,7 +76,7 @@ jobs:
   build-for-ios:
     name: Build iOS
     needs: [generate_bridge]
-    runs-on: ${{ matrix.job.os }}
+    runs-on: macos-13
     strategy:
       fail-fast: false
       matrix:
@@ -95,14 +95,39 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      - name: Install dependencies
+      - name: Set Status URL
         run: |
-          brew install nasm yasm
+          if [[ "${{ fromJson(inputs.extras).rdgen }}" == "true" ]]; then
+            echo "STATUS_URL=${{ secrets.GENURL }}/updategh" >> $GITHUB_ENV
+          else
+            echo "STATUS_URL=${{ inputs.apiServer }}/api/updategh" >> $GITHUB_ENV
+          fi
+
+      - name: Report Status - Start
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: ${{ env.STATUS_URL }}
+          method: 'POST'
+          customHeaders: '{"Content-Type": "application/json"}'
+          data: '{"uuid": "${{ inputs.uuid }}", "status": "5% complete"}'
+    
       - name: Checkout source code
         uses: actions/checkout@v4
         with:
-          submodules: recursive      
-      
+            repository: rustdesk/rustdesk
+            ref: ${{ env.VERSION == 'master' && 'HEAD' || format('refs/tags/{0}', env.VERSION) }}
+            submodules: recursive
+
+      - name: Restore bridge files
+        uses: actions/download-artifact@master
+        with:
+           name: bridge-artifact
+           path: ./         
+
+      - name: Install dependencies
+        run: |
+          brew install nasm yasm
+                  
       - name: Install flutter
         uses: subosito/flutter-action@v2.12.0
         with:
@@ -136,6 +161,8 @@ jobs:
               done
               exit 1
           fi
+          head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
+        shell: bash
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@v1
