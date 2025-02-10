@@ -72,11 +72,22 @@ jobs:
     with:
       version: ${{ fromJson(inputs.extras).version }}
 
+
   build-for-ios:
     name: Build iOS
     needs: [generate-bridge]
-    runs-on: macos-latest
-    steps:
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - {
+              target: aarch64-apple-ios,
+              os: macos-13,
+              arch: aarch64,
+              vcpkg-triplet: arm64-ios,
+            }     
+   steps:
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
         with:
