@@ -152,6 +152,7 @@ jobs:
         with:
           channel: "stable"
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
 
       - name: Patch flutter
         continue-on-error: true
