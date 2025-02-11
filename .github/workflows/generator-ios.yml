@@ -179,6 +179,7 @@ jobs:
         run: |
           if ! $VCPKG_ROOT/vcpkg \
             install \
+            --triplet arm64-ios \
             --x-install-root="$VCPKG_ROOT/installed"; then
             find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
               echo "$_1:"
