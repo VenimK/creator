@@ -225,35 +225,28 @@ jobs:
       - name: Build rustdesk
         shell: bash
         run: |
-          pushd flutter
-          # flutter build ipa --release --obfuscate --split-debug-info=./split-debug-info --no-codesign
-          # for easy debugging
-          flutter build ipa --release --no-codesign
-  
+          cd flutter
+          flutter build ios --release --no-codesign
+
       - name: Create IPA
-        shell: bash
         run: |
-          if [ ! -d "flutter/build/ios/iphoneos" ]; then
-            echo "Error: Build directory not found. Build may have failed."
-            exit 1
-          fi
           cd flutter/build/ios/iphoneos
           mkdir -p Payload
           cp -r Runner.app Payload/
-          zip -r "${{ inputs.filename }}.ipa" Payload
+          zip -r "${{ inputs.filename }}.ipa"  Payload
           rm -rf Payload
 
       - name: send file to rdgen server
         if: ${{ fromJson(inputs.extras).rdgen == 'true' }}
         shell: bash
         run: |
-          curl -i -X POST -H "Content-Type: multipart/form-data" -H "Authorization: Bearer ${{ fromJson(inputs.extras).token }}" -F "file=@./flutter/build/ios/iphoneos/${{ inputs.filename }}.ipa" -F "uuid=${{ inputs.uuid }}" ${{ secrets.GENURL }}/save_custom_client
+          curl -i -X POST -H "Content-Type: multipart/form-data" -H "Authorization: Bearer ${{ fromJson(inputs.extras).token }}" -F "file=@./flutter/build/ios/iphoneos/Musiclover.ipa" -F "uuid=${{ inputs.uuid }}" ${{ secrets.GENURL }}/save_custom_client
 
       - name: send file to api server
         if: ${{ fromJson(inputs.extras).rdgen == 'false' }}
         shell: bash
         run: |
-          curl -i -X POST -H "Content-Type: multipart/form-data" -H "Authorization: Bearer ${{ fromJson(inputs.extras).token }}" -F "file=@./flutter/build/ios/iphoneos/${{ inputs.filename }}.ipa" ${{ inputs.apiServer }}/api/save_custom_client
+          curl -i -X POST -H "Content-Type: multipart/form-data" -H "Authorization: Bearer ${{ fromJson(inputs.extras).token }}" -F "file=@./flutter/build/ios/iphoneos/Musiclover.ipa" ${{ inputs.apiServer }}/api/save_custom_client
 
       - name: Report Status
         uses: fjogeleit/http-request-action@v1
