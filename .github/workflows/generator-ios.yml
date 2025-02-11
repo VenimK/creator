@@ -231,9 +231,14 @@ jobs:
           flutter build ipa --release --no-codesign
   
       - name: Create IPA
+        shell: bash
         run: |
+          if [ ! -d "flutter/build/ios/iphoneos" ]; then
+            echo "Error: Build directory not found. Build may have failed."
+            exit 1
+          fi
           cd flutter/build/ios/iphoneos
-          mkdir Payload
+          mkdir -p Payload
           cp -r Runner.app Payload/
           zip -r "${{ inputs.filename }}.ipa" Payload
           rm -rf Payload
