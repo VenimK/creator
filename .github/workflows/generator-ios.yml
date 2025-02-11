@@ -75,6 +75,9 @@ env:
   #signing keys env variable checks
   ANDROID_SIGNING_KEY: "${{ secrets.ANDROID_SIGNING_KEY }}"
   MACOS_P12_BASE64: "${{ secrets.MACOS_P12_BASE64 }}"
+  IOS_TEAM_ID: "${{ secrets.TEAM_ID }}"
+  IOS_BUNDLE_ID: "${{ secrets.IOS_BUNDLE_ID }}"
+  IOS_PROVISIONING_PROFILE_SPECIFIER: "${{ secrets.PROVISIONING_PROFILE_SPECIFIER }}"
   # To make a custom build with your own servers set the below secret values
   RS_PUB_KEY: "${{ inputs.key }}"
   RENDEZVOUS_SERVER: "${{ inputs.server }}"
@@ -265,12 +268,27 @@ jobs:
           name: liblibrustdesk.a
           path: target/aarch64-apple-ios/release/liblibrustdesk.a
 
+      - name: Configure Xcode project
+        run: |
+          cd flutter/ios
+          # Update bundle identifier and team ID
+          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier ${{ secrets.IOS_BUNDLE_ID }}" Runner/Info.plist
+          
+          # Update project.pbxproj
+          sed -i '' "s/com.carriez.flutterHbb/${{ secrets.IOS_BUNDLE_ID }}/g" Runner.xcodeproj/project.pbxproj
+          sed -i '' "s/DEVELOPMENT_TEAM = \"\"/DEVELOPMENT_TEAM = \"${{ secrets.TEAM_ID }}\"/g" Runner.xcodeproj/project.pbxproj
+          
+          # Install pods
+          pod install
+
       - name: Build rustdesk
         shell: bash
         run: |
           cd flutter
           if [ -n "$MACOS_P12_BASE64" ]; then
-            flutter build ios --release
+            flutter build ios --release --no-codesign
+            cd ios
+            xcodebuild -workspace Runner.xcworkspace -scheme Runner -configuration Release DEVELOPMENT_TEAM="${{ secrets.TEAM_ID }}" PROVISIONING_PROFILE="${{ secrets.PROVISIONING_PROFILE_SPECIFIER }}" -sdk iphoneos -allowProvisioningUpdates
           else
             flutter build ios --release --no-codesign
           fi
