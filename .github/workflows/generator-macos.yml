@@ -194,6 +194,7 @@ jobs:
 
           cp ./src/lang/en.rs ./src/lang/en.rs.bak
           cp ./src/lang/nl.rs ./src/lang/nl.rs.bak
+          find ./src/lang -name "*.rs" -exec sed -i '' -e 's|RustDesk|${{ inputs.appname }}|' {} \;
           sed -i '' -e 's|RustDesk|${{ inputs.appname }}|' ./src/lang/en.rs
           sed -i '' -e 's|RustDesk|${{ inputs.appname }}|' ./src/lang/nl.rs
            
