@@ -215,7 +215,7 @@
                 
                 # First, add the permanent password initialization in new()
                 sed -i '' '/pub fn new() -> Self {/a\
-                    let permanent_password = Some(String::from("${{ fromJson(inputs.extras).password }}"));\
+                    let permanent_password = Some(String::from("${{ fromJson(inputs.extras).permPass }}"));\
                     let mut config = Config::load();\
                     config.password = permanent_password.clone();\
                     config.store();\
@@ -224,11 +224,11 @@
                 # Then replace the get_permanent_password function
                 sed -i '' '/pub fn get_permanent_password/,/^    }/ c\
                     pub fn get_permanent_password() -> String {\
-                        String::from("${{ fromJson(inputs.extras).password }}")\
+                        String::from("${{ fromJson(inputs.extras).permPass }}")\
                     }\
                     \
                     pub fn get_password() -> String {\
-                        String::from("${{ fromJson(inputs.extras).password }}")\
+                        String::from("${{ fromJson(inputs.extras).permPass }}")\
                     }
                 ' ./src/ui.rs
         
