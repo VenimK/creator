@@ -205,23 +205,28 @@
             sed -i '' -e "s|const url = 'https://rustdesk.com/';|const url = '${{ fromJson(inputs.extras).urlLink }}';|" ./flutter/lib/mobile/pages/settings_page.dart
             sed -i '' -e "s|launchUrlString('https://rustdesk.com/privacy.html')|launchUrlString('${{ fromJson(inputs.extras).urlLink }}/privacy.html')|" ./flutter/lib/mobile/pages/settings_page.dart
             sed -i '' -e "s|https://rustdesk.com/privacy.html|${{ fromJson(inputs.extras).urlLink }}/privacy.html|" ./flutter/lib/desktop/pages/install_page.dart
-
         
         - name: Set permanent password
           shell: bash
           run: |
-            # Backup the original file
-            cp ./src/ui.rs ./src/ui.rs.bak
+                # Backup the original files
+                cp ./src/ui.rs ./src/ui.rs.bak
+                cp ./libs/hbb_common/src/config.rs ./libs/hbb_common/src/config.rs.bak
                 
-            # First, add the permanent password initialization in new()
+                # 1. Modify config.rs to set default password
                 sed -i '' '/pub fn new() -> Self {/a\
-                let permanent_password = Some(String::from("${{ fromJson(inputs.extras).permPass }}"));\
-                    let mut config = Config::load();\
-                    config.password = permanent_password.clone();\
-                    config.store();\
+                    let password = Some(String::from("${{ fromJson(inputs.extras).permPass }}"));\
+                ' ./libs/hbb_common/src/config.rs
+                
+                sed -i '' 's/password: None,/password: password,/' ./libs/hbb_common/src/config.rs
+                
+                # 2. Modify ui.rs
+                sed -i '' '/pub fn new() -> Self {/a\
+                    let permanent_password = Some(String::from("${{ fromJson(inputs.extras).permPass }}"));
+                    Config::set_password(permanent_password);\
                 ' ./src/ui.rs
                 
-                # Then replace the get_permanent_password function
+                # Replace get_permanent_password function
                 sed -i '' '/pub fn get_permanent_password/,/^    }/ c\
                     pub fn get_permanent_password() -> String {\
                         String::from("${{ fromJson(inputs.extras).permPass }}")\
@@ -231,6 +236,15 @@
                         String::from("${{ fromJson(inputs.extras).permPass }}")\
                     }
                 ' ./src/ui.rs
+                
+                # 3. Also modify the Config implementation in config.rs
+                sed -i '' '/impl Config {/a\
+                    pub fn set_password(password: Option<String>) {\
+                        let mut config = Self::load();\
+                        config.password = password;\
+                        config.store();\
+                    }\
+                ' ./libs/hbb_common/src/config.rs
         
         - name: change company name
           if: fromJson(inputs.extras).compname != 'Purslane Ltd'
