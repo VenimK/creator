@@ -172,6 +172,23 @@
             sed -i '' -e 's|<key>CFBundleDisplayName</key>.*<string>.*</string>|<key>CFBundleDisplayName</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/macos/Runner/Info.plist
             sed -i '' -e 's|<key>CFBundleIdentifier</key>.*<string>.*</string>|<key>CFBundleIdentifier</key>\n\t<string>com.${{ inputs.appname }}.app</string>|' ./flutter/macos/Runner/Info.plist
             
+            # TEST Bundle Identifier
+            sed -i '' 's/	<key>CFBundleIdentifier<\/key>.*<string>.*<\/string>/	<key>CFBundleIdentifier<\/key>\n	<string>com.${{ inputs.appname }}.app<\/string>/' ./flutter/macos/Runner/Info.plist
+          
+            # TEST URL Scheme
+            sed -i '' 's/<string>rustdesk<\/string>/<string>${{ inputs.appname }}<\/string>/' ./flutter/macos/Runner/Info.plist
+          
+            # TEST URL Bundle Name
+            sed -i '' 's/com.carriez.rustdesk/com.${{ inputs.appname }}.app/' ./flutter/macos/Runner/Info.plist
+          
+            # Copyright
+            sed -i '' 's/	<key>NSHumanReadableCopyright<\/key>.*<string>.*<\/string>/	<key>NSHumanReadableCopyright<\/key>\n	<string>Copyright © 2024 ${{ fromJson(inputs.extras).compname }}. All rights reserved.<\/string>/' ./flutter/macos/Runner/Info.plist
+          
+            # Microphone Usage Description
+            sed -i '' 's/	<key>NSMicrophoneUsageDescription<\/key>.*<string>.*<\/string>/	<key>NSMicrophoneUsageDescription<\/key>\n	<string>${{ inputs.appname }} needs microphone access for audio sharing.<\/string>/' ./flutter/macos/Runner/Info.plist
+
+
+
             # MACSTUFF Update AppInfo.xcconfig
             sed -i '' -e 's|PRODUCT_NAME = .*|PRODUCT_NAME = ${{ inputs.appname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
             sed -i '' -e 's|PRODUCT_BUNDLE_IDENTIFIER = .*|PRODUCT_BUNDLE_IDENTIFIER = com.${{ inputs.appname }}.app|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
