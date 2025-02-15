@@ -526,6 +526,10 @@
             customHeaders: '{"Content-Type": "application/json"}'
             data: '{"uuid": "${{ inputs.uuid }}", "status": "50% complete"}'
       
+        - name: Create custom.txt file
+          shell: bash
+          run: |
+            echo -n "${{ env.CUSTOM }}" | cat > ./rustdesk/custom.txt
 
         - name: Build rustdesk
           run: |
