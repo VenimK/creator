@@ -174,7 +174,6 @@ def generator_view(request):
             extras['statussort'] = 'true' if statussort else 'false'
             extras['removeNewVersionNotif'] = 'true' if removeNewVersionNotif else 'false'
             extras['compname'] = compname
-            extras['permPass'] = permPass
             extra_input = json.dumps(extras)
 
             ####from here run the github action, we need user, repo, access token.
