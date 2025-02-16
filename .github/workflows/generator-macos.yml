@@ -179,7 +179,7 @@ jobs:
           sed -i '' 's/<string>rustdesk<\/string>/<string>${{ inputs.appname }}<\/string>/' ./flutter/macos/Runner/Info.plist
         
           # TEST URL Bundle Name
-          sed -i '' 's/com.carriez.rustdesk/com.${{ inputs.appname }}.app/' ./flutter/macos/Runner/Info.plist
+          sed -i '' 's/com.carriez.rustdesk/com.carriez.${{ inputs.appname }}/' ./flutter/macos/Runner/Info.plist
         
           # Copyright
           sed -i '' 's/ <key>NSHumanReadableCopyright<\/key>.*<string>.*<\/string>/ <key>NSHumanReadableCopyright<\/key>\n  <string>Copyright © 2024 ${{ fromJson(inputs.extras).compname }}. All rights reserved.<\/string>/' ./flutter/macos/Runner/Info.plist
@@ -192,7 +192,7 @@ jobs:
           # MACSTUFF Update AppInfo.xcconfig
           sed -i '' -e 's|PRODUCT_NAME = .*|PRODUCT_NAME = ${{ inputs.appname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
           sed -i '' -e 's|PRODUCT_BUNDLE_IDENTIFIER = .*|PRODUCT_BUNDLE_IDENTIFIER = com.${{ inputs.appname }}.app|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
-          sed -i '' -e 's|Copyright © 2025 Purslane Ltd. All rights reserved.|Copyright © 2025 ${{ inputs.appname }}. All rights reserved.|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
+          sed -i '' -e 's/Copyright © 2025 Purslane Ltd. All rights reserved./Copyright © 2025 ${{ inputs.appname }}. All rights reserved./' ./flutter/macos/Runner/Configs/AppInfo.xcconfig 
           sed -i -e 's|Purslane Ltd.|${{ inputs.appname }}|' ./Cargo.toml
           sed -i -e 's|Purslane Ltd|${{ inputs.appname }}|' ./libs/portable/Cargo.toml
 
