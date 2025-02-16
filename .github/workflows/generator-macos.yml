@@ -166,12 +166,10 @@
             sed -i -e 's|description = "RustDesk Remote Desktop"|description = "${{ inputs.appname }}"|' ./Cargo.toml
             sed -i -e 's|ProductName = "RustDesk"|ProductName = "${{ inputs.appname }}"|' ./Cargo.toml
             sed -i -e 's|FileDescription = "RustDesk Remote Desktop"|FileDescription = "${{ inputs.appname }}"|' ./Cargo.toml
-            sed -i -e 's|OriginalFilename = "rustdesk.exe"|OriginalFilename = "${{ inputs.appname }}.exe"|' ./Cargo.toml
             # ./libs/portable/Cargo.toml
             sed -i -e 's|description = "RustDesk Remote Desktop"|description = "${{ inputs.appname }}"|' ./libs/portable/Cargo.toml
             sed -i -e 's|ProductName = "RustDesk"|ProductName = "${{ inputs.appname }}"|' ./libs/portable/Cargo.toml
             sed -i -e 's|FileDescription = "RustDesk Remote Desktop"|FileDescription = "${{ inputs.appname }}"|' ./libs/portable/Cargo.toml
-            sed -i -e 's|OriginalFilename = "rustdesk.exe"|OriginalFilename = "${{ inputs.appname }}.exe"|' ./libs/portable/Cargo.toml
             # ./flutter/windows/runner/Runner.rc
             sed -i -e 's|"RustDesk Remote Desktop"|"${{ inputs.appname }}"|' ./flutter/windows/runner/Runner.rc
             sed -i -e 's|VALUE "InternalName", "rustdesk" "\0"|VALUE "InternalName", "${{ inputs.appname }}" "\0"|' ./flutter/windows/runner/Runner.rc
@@ -543,9 +541,13 @@
             customHeaders: '{"Content-Type": "application/json"}'
             data: '{"uuid": "${{ inputs.uuid }}", "status": "60% complete"}'
 
-        # - name: Copy service file
-        #   run: |
-        #     cp -rf ../target/release/service ./build/macos/Build/Products/Release/RustDesk.app/Contents/MacOS/
+        - name: Create app bundle directories
+          run: |
+            mkdir -p "./build/macos/Build/Products/Release/${{ inputs.appname }}.app/Contents/MacOS"
+
+        - name: Copy service file
+          run: |
+            cp -rf ../target/release/service "./build/macos/Build/Products/Release/${{ inputs.appname }}.app/Contents/MacOS/"
 
         - name: Install rcodesign tool
           if: env.MACOS_P12_BASE64 != null
