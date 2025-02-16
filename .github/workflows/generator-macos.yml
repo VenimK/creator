@@ -483,6 +483,12 @@
             customHeaders: '{"Content-Type": "application/json"}'
             data: '{"uuid": "${{ inputs.uuid }}", "status": "30% complete"}'
 
+        - name: Install build dependencies
+          run: |
+            brew install llvm create-dmg libyuv pkg-config
+            echo "Installed dependencies:"
+            brew list
+
         - name: Create app bundle directories
           run: |
             APP_PATH="./build/macos/Build/Products/Release/${{ inputs.appname }}.app"
@@ -490,6 +496,9 @@
             mkdir -p "$APP_PATH/Contents/Frameworks/App.framework/Versions/Current/Resources/flutter_assets/assets"
 
         - name: Build Flutter app
+          env:
+            MACOSX_DEPLOYMENT_TARGET: "12.3"
+            PKG_CONFIG_PATH: "/opt/homebrew/lib/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
           run: |
             if [ "aarch64-apple-darwin" = "aarch64-apple-darwin" ]; then
               MIN_MACOS_VERSION="12.3"
@@ -502,6 +511,12 @@
             find . -type f -name "*.plist" -exec sed -i -e "s/RustDesk/${{ inputs.appname }}/g" {} +
             find . -type f -name "*.pbxproj" -exec sed -i -e "s/RustDesk/${{ inputs.appname }}/g" {} +
             sed -i -e "s/RustDesk\.app/${{ inputs.appname }}\.app/g" build.py
+            
+            # Verify libyuv installation
+            echo "Checking libyuv installation..."
+            pkg-config --libs libyuv || echo "libyuv not found in pkg-config"
+            ls -l /opt/homebrew/Cellar/libyuv || echo "libyuv not found in Homebrew Cellar"
+            
             ./build.py --flutter --hwcodec ${{ matrix.job.extra-build-args }}
 
         - name: Copy service file
