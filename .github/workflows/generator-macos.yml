@@ -485,7 +485,8 @@
 
         - name: Create MacOS directory structure
           run: |
-            mkdir -p ./build/macos/Build/Products/Release/RustDesk.app/Contents/MacOS
+            APP_PATH="./build/macos/Build/Products/Release/${{ inputs.appname }}.app"
+            mkdir -p "$APP_PATH/Contents/MacOS"
 
         - name: Setup vcpkg with Github Actions binary cache
           uses: lukka/run-vcpkg@v11
@@ -530,7 +531,7 @@
               sed -i -e "s/osx_minimum_system_version = \"[0-9]*.[0-9]*\"/osx_minimum_system_version = \"${MIN_MACOS_VERSION}\"/" Cargo.toml
               sed -i -e "s/MACOSX_DEPLOYMENT_TARGET = [0-9]*.[0-9]*;/MACOSX_DEPLOYMENT_TARGET = ${MIN_MACOS_VERSION};/" flutter/macos/Runner.xcodeproj/project.pbxproj
             fi
-            sed -i -e "s/RustDesk.app/\${{ inputs.appname }}.app\/" build.py
+            sed -i -e "s/RustDesk.app/\"${{ inputs.appname }}.app\"/" build.py
             ./build.py --flutter --hwcodec ${{ matrix.job.extra-build-args }}
 
         - name: Report Status - Post Build
@@ -543,11 +544,13 @@
 
         - name: Create app bundle directories
           run: |
-            mkdir -p "./build/macos/Build/Products/Release/${{ inputs.appname }}.app/Contents/MacOS"
+            APP_PATH="./build/macos/Build/Products/Release/${{ inputs.appname }}.app"
+            mkdir -p "$APP_PATH/Contents/MacOS"
 
         - name: Copy service file
           run: |
-            cp -rf ../target/release/service "./build/macos/Build/Products/Release/${{ inputs.appname }}.app/Contents/MacOS/"
+            APP_PATH="./build/macos/Build/Products/Release/${{ inputs.appname }}.app"
+            cp -rf ../target/release/service "$APP_PATH/Contents/MacOS/"
 
         - name: Install rcodesign tool
           if: env.MACOS_P12_BASE64 != null
