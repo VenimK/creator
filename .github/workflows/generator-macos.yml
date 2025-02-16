@@ -166,9 +166,9 @@ jobs:
           cp ./flutter/macos/Runner/Info.plist ./flutter/macos/Runner/Info.plist.bak
           cp ./flutter/macos/Runner/Configs/AppInfo.xcconfig ./flutter/macos/Runner/Configs/AppInfo.xcconfig.bak
         
-          # MACSTUFF Update Info.plist
+          # MACSTUFF Update Info.plist 1602
           sed -i '' -e 's|$(PRODUCT_NAME)|${{ inputs.appname }}|' ./flutter/macos/Runner/Info.plist
-          # sed -i '' -e 's|<key>CFBundleName</key>.*<string>.*</string>|<key>CFBundleName</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/macos/Runner/Info.plist
+          sed -i '' -e 's|$(PRODUCT_BUNDLE_IDENTIFIER)|${{ inputs.appname }}|' ./flutter/macos/Runner/Info.plist
           sed -i '' -e 's|<key>CFBundleDisplayName</key>.*<string>.*</string>|<key>CFBundleDisplayName</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/macos/Runner/Info.plist
           sed -i '' -e 's|<key>CFBundleIdentifier</key>.*<string>.*</string>|<key>CFBundleIdentifier</key>\n\t<string>com.${{ inputs.appname }}.app</string>|' ./flutter/macos/Runner/Info.plist
           
@@ -192,7 +192,7 @@ jobs:
           # MACSTUFF Update AppInfo.xcconfig
           sed -i '' -e 's|PRODUCT_NAME = .*|PRODUCT_NAME = ${{ inputs.appname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
           sed -i '' -e 's|PRODUCT_BUNDLE_IDENTIFIER = .*|PRODUCT_BUNDLE_IDENTIFIER = com.${{ inputs.appname }}.app|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
-          sed -i '' -e 's|Copyright \u00A9 2025 Purslane Ltd. All rights reserved.|Copyright \u00A9 2025 ${{ inputs.appname }}. All rights reserved.|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
+          sed -i '' -e 's|Copyright © 2025 Purslane Ltd. All rights reserved.|Copyright © 2025 ${{ inputs.appname }}. All rights reserved.|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
           sed -i -e 's|Purslane Ltd.|${{ inputs.appname }}|' ./Cargo.toml
           sed -i -e 's|Purslane Ltd|${{ inputs.appname }}|' ./libs/portable/Cargo.toml
 
@@ -244,22 +244,7 @@ jobs:
           sed -i -e 's|"RustDesk"|"${{ inputs.appname }}"|' ./flutter/windows/runner/Runner.rc
           # ./src/lang/en.rs
           find ./src/lang -name "*.rs" -exec sed -i -e 's|RustDesk|${{ inputs.appname }}|' {} \;
-  
-      - name: change company name
-        if: fromJson(inputs.extras).compname != 'Purslane Ltd'
-        continue-on-error: true
-        shell: bash
-        run: |
-          sed -i -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./flutter/lib/desktop/pages/desktop_setting_page.dart
-          sed -i -e 's|Purslane Ltd.|${{ fromJson(inputs.extras).compname }}|' ./res/setup.nsi
-          sed -i -e 's|PURSLANE|${{ fromJson(inputs.extras).compname }}|' ./res/msi/preprocess.py
-          sed -i -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./res/msi/preprocess.py
-          sed -i -e 's|"Copyright © 2025 Purslane Ltd. All rights reserved."|"Copyright © 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved."|' ./flutter/windows/runner/Runner.rc
-          sed -i -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./flutter/windows/runner/Runner.rc
-          sed -i -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./Cargo.toml
-          sed -i -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./libs/portable/Cargo.toml
-          
-
+              
       - name: change company name
         if: fromJson(inputs.extras).compname != 'Purslane Ltd'
         continue-on-error: true
@@ -267,7 +252,6 @@ jobs:
         run: |
           sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./flutter/lib/desktop/pages/desktop_setting_page.dart
           sed -i '' -e 's|Purslane Ltd.|${{ fromJson(inputs.extras).compname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
-          sed -i '' -e 's|"Copyright \u00A9 2025 Purslane Ltd. All rights reserved."|"Copyright \u00A9 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved."|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
           sed -i '' -e 's|"Copyright © 2025 Purslane Ltd. All rights reserved."|"Copyright © 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved."|' ./flutter/windows/runner/Runner.rc
           sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./flutter/windows/runner/Runner.rc
           sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./Cargo.toml
