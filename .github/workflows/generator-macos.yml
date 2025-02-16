@@ -161,63 +161,43 @@ jobs:
         continue-on-error: false
         shell: bash
         run: |
-
-          # MACSTUFF Backup the original files
+          # Backup the original files
           cp ./flutter/macos/Runner/Info.plist ./flutter/macos/Runner/Info.plist.bak
           cp ./flutter/macos/Runner/Configs/AppInfo.xcconfig ./flutter/macos/Runner/Configs/AppInfo.xcconfig.bak
-        
-          # MACSTUFF Update Info.plist 1602
-          sed -i '' -e 's|$(PRODUCT_NAME)|${{ inputs.appname }}|' ./flutter/macos/Runner/Info.plist
-          sed -i '' -e 's|$(PRODUCT_BUNDLE_IDENTIFIER)|${{ inputs.appname }}|' ./flutter/macos/Runner/Info.plist
-          sed -i '' -e 's|<key>CFBundleDisplayName</key>.*<string>.*</string>|<key>CFBundleDisplayName</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/macos/Runner/Info.plist
-          sed -i '' -e 's|<key>CFBundleIdentifier</key>.*<string>.*</string>|<key>CFBundleIdentifier</key>\n\t<string>com.${{ inputs.appname }}.app</string>|' ./flutter/macos/Runner/Info.plist
+          cp ./flutter/macos/Runner.xcodeproj/project.pbxproj ./flutter/macos/Runner.xcodeproj/project.pbxproj.bak
+
+          # Define the bundle identifier consistently
+          BUNDLE_ID="com.carriez.${{ inputs.appname }}"
           
-          # TEST Bundle Identifier
-          sed -i '' 's/ <key>CFBundleIdentifier<\/key>.*<string>.*<\/string>/ <key>CFBundleIdentifier<\/key>\n  <string>com.${{ inputs.appname }}.app<\/string>/' ./flutter/macos/Runner/Info.plist
-        
-          # TEST URL Scheme
-          sed -i '' 's/<string>rustdesk<\/string>/<string>${{ inputs.appname }}<\/string>/' ./flutter/macos/Runner/Info.plist
-        
-          # TEST URL Bundle Name
-          sed -i '' 's/com.carriez.rustdesk/com.carriez.${{ inputs.appname }}/' ./flutter/macos/Runner/Info.plist
-        
-          # Copyright
-          sed -i '' 's/ <key>NSHumanReadableCopyright<\/key>.*<string>.*<\/string>/ <key>NSHumanReadableCopyright<\/key>\n  <string>Copyright © 2024 ${{ fromJson(inputs.extras).compname }}. All rights reserved.<\/string>/' ./flutter/macos/Runner/Info.plist
-        
-          # Microphone Usage Description
-          sed -i '' 's/ <key>NSMicrophoneUsageDescription<\/key>.*<string>.*<\/string>/ <key>NSMicrophoneUsageDescription<\/key>\n  <string>${{ inputs.appname }} needs microphone access for audio sharing.<\/string>/' ./flutter/macos/Runner/Info.plist
-
-
-
-          # MACSTUFF Update AppInfo.xcconfig
+          # Update project.pbxproj
+          sed -i '' -e "s/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/g" ./flutter/macos/Runner.xcodeproj/project.pbxproj
+          sed -i '' -e "s/PRODUCT_BUNDLE_IDENTIFIER = \".*\";/PRODUCT_BUNDLE_IDENTIFIER = \"$BUNDLE_ID\";/g" ./flutter/macos/Runner.xcodeproj/project.pbxproj
+          
+          # Update Info.plist
+          sed -i '' -e "s/\$(PRODUCT_BUNDLE_IDENTIFIER)/$BUNDLE_ID/g" ./flutter/macos/Runner/Info.plist
+          sed -i '' -e "s/com\.carriez\.rustdesk/$BUNDLE_ID/g" ./flutter/macos/Runner/Info.plist
+          sed -i '' -e 's|<key>CFBundleDisplayName</key>.*<string>.*</string>|<key>CFBundleDisplayName</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/macos/Runner/Info.plist
+          sed -i '' -e "s|<key>CFBundleIdentifier</key>.*<string>.*</string>|<key>CFBundleIdentifier</key>\n\t<string>$BUNDLE_ID</string>|" ./flutter/macos/Runner/Info.plist
+          
+          # Update AppInfo.xcconfig
           sed -i '' -e 's|PRODUCT_NAME = .*|PRODUCT_NAME = ${{ inputs.appname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
-          sed -i '' -e 's|PRODUCT_BUNDLE_IDENTIFIER = .*|PRODUCT_BUNDLE_IDENTIFIER = com.${{ inputs.appname }}.app|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
-          sed -i '' -e 's/Copyright © 2025 Purslane Ltd. All rights reserved./Copyright © 2025 ${{ inputs.appname }}. All rights reserved./' ./flutter/macos/Runner/Configs/AppInfo.xcconfig 
-          sed -i -e 's|Purslane Ltd.|${{ inputs.appname }}|' ./Cargo.toml
-          sed -i -e 's|Purslane Ltd|${{ inputs.appname }}|' ./libs/portable/Cargo.toml
+          sed -i '' -e "s|PRODUCT_BUNDLE_IDENTIFIER = .*|PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID|" ./flutter/macos/Runner/Configs/AppInfo.xcconfig
+          
+          # Update other Info.plist entries
+          sed -i '' 's/<string>rustdesk<\/string>/<string>${{ inputs.appname }}<\/string>/' ./flutter/macos/Runner/Info.plist
+          sed -i '' 's/ <key>NSHumanReadableCopyright<\/key>.*<string>.*<\/string>/ <key>NSHumanReadableCopyright<\/key>\n  <string>Copyright \u00A9 2024 ${{ fromJson(inputs.extras).compname }}. All rights reserved.<\/string>/' ./flutter/macos/Runner/Info.plist
+          sed -i '' 's/ <key>NSMicrophoneUsageDescription<\/key>.*<string>.*<\/string>/ <key>NSMicrophoneUsageDescription<\/key>\n  <string>${{ inputs.appname }} needs microphone access for audio sharing.<\/string>/' ./flutter/macos/Runner/Info.plist
 
           # Update Xcode project settings
           sed -i '' -e 's/PRODUCT_NAME = "RustDesk"/PRODUCT_NAME = "${{ inputs.appname }}"/' ./flutter/macos/Runner.xcodeproj/project.pbxproj
-          sed -i '' -e 's/PRODUCT_BUNDLE_IDENTIFIER = ".*"/PRODUCT_BUNDLE_IDENTIFIER = "com.${{ inputs.appname }}.app"/' ./flutter/macos/Runner.xcodeproj/project.pbxproj
-
-          # Update CMake settings
-          if [ -f "./flutter/macos/CMakeLists.txt" ]; then
-            sed -i '' -e 's/set(BINARY_NAME ".*")/set(BINARY_NAME "${{ inputs.appname }}")/' ./flutter/macos/CMakeLists.txt
-          fi
-
-          # Update Podfile - keep the target as 'Runner'
-          # sed -i '' -e 's/target '"'"'Runner'"'"' do/target '"'"'${{ inputs.appname }}'"'"' do/' ./flutter/macos/Podfile
-          sed -i '' -e 's/target '"'"'Runner'"'"' do/target '"'"'Runner'"'"' do/' ./flutter/macos/Podfile
-    
-          find ./src/lang -name "*.rs" -exec sed -i '' -e 's|RustDesk|${{ inputs.appname }}|' {} \;
-
-          sed -i '' -e "s|Homepage: https://rustdesk.com|Homepage: ('${{ fromJson(inputs.extras).urlLink }}|" ./build.py
-          sed -i '' -e "s|launchUrl(Uri.parse('https://rustdesk.com'));|launchUrl(Uri.parse('${{ fromJson(inputs.extras).urlLink }}'));|" ./flutter/lib/common.dart
-          sed -i '' -e "s|launchUrlString('https://rustdesk.com');|launchUrlString('${{ fromJson(inputs.extras).urlLink }}');|" ./flutter/lib/desktop/pages/desktop_setting_page.dart
-          sed -i '' -e "s|launchUrlString('https://rustdesk.com/privacy.html')|launchUrlString('${{ fromJson(inputs.extras).urlLink }}/privacy.html')|" ./flutter/lib/desktop/pages/desktop_setting_page.dart
-          sed -i '' -e "s|const url = 'https://rustdesk.com/';|const url = '${{ fromJson(inputs.extras).urlLink }}';|" ./flutter/lib/mobile/pages/settings_page.dart
-          sed -i '' -e "s|launchUrlString('https://rustdesk.com/privacy.html')|launchUrlString('${{ fromJson(inputs.extras).urlLink }}/privacy.html')|" ./flutter/lib/mobile/pages/settings_page.dart
-          sed -i '' -e "s|https://rustdesk.com/privacy.html|${{ fromJson(inputs.extras).urlLink }}/privacy.html|" ./flutter/lib/desktop/pages/install_page.dart
+          
+          # Verify the changes
+          echo "Checking bundle identifier in Info.plist:"
+          grep -A 1 "CFBundleIdentifier" ./flutter/macos/Runner/Info.plist
+          echo "Checking bundle identifier in AppInfo.xcconfig:"
+          grep "PRODUCT_BUNDLE_IDENTIFIER" ./flutter/macos/Runner/Configs/AppInfo.xcconfig
+          echo "Checking bundle identifier in project.pbxproj:"
+          grep "PRODUCT_BUNDLE_IDENTIFIER" ./flutter/macos/Runner.xcodeproj/project.pbxproj
 
       - name: change appname to custom
         if: inputs.appname != 'rustdesk'
@@ -252,7 +232,7 @@ jobs:
         run: |
           sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./flutter/lib/desktop/pages/desktop_setting_page.dart
           sed -i '' -e 's|Purslane Ltd.|${{ fromJson(inputs.extras).compname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
-          sed -i '' -e 's|"Copyright © 2025 Purslane Ltd. All rights reserved."|"Copyright © 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved."|' ./flutter/windows/runner/Runner.rc
+          sed -i '' -e 's|"Copyright \u00A9 2025 Purslane Ltd. All rights reserved."|"Copyright \u00A9 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved."|' ./flutter/windows/runner/Runner.rc
           sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./flutter/windows/runner/Runner.rc
           sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./Cargo.toml
           sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./libs/portable/Cargo.toml
