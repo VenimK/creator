@@ -485,35 +485,7 @@
 
         - name: Install build dependencies
           run: |
-            brew install llvm create-dmg pkg-config cmake ninja
-
-        - name: Build and install libyuv
-          run: |
-            echo "Building libyuv from source..."
-            cd /tmp
-            git clone https://chromium.googlesource.com/libyuv/libyuv
-            cd libyuv
-            mkdir build && cd build
-            cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
-            ninja
-            sudo ninja install
-            # Create pkg-config file for libyuv
-            sudo tee /usr/local/lib/pkgconfig/libyuv.pc << EOF
-            prefix=/usr/local
-            exec_prefix=\${prefix}
-            libdir=\${exec_prefix}/lib
-            includedir=\${prefix}/include
-            
-            Name: libyuv
-            Description: YUV scaling and conversion library
-            Version: 1.0.0
-            Libs: -L\${libdir} -lyuv
-            Cflags: -I\${includedir}
-            EOF
-            
-            echo "Verifying libyuv installation..."
-            pkg-config --libs libyuv || echo "libyuv not found in pkg-config"
-            ls -l /usr/local/lib/libyuv* || echo "libyuv library not found"
+            brew install llvm create-dmg pkg-config
 
         - name: Create app bundle directories
           run: |
@@ -524,9 +496,6 @@
         - name: Build Flutter app
           env:
             MACOSX_DEPLOYMENT_TARGET: "12.3"
-            PKG_CONFIG_PATH: "/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
-            LIBRARY_PATH: "/usr/local/lib:$LIBRARY_PATH"
-            CPATH: "/usr/local/include:$CPATH"
           run: |
             if [ "aarch64-apple-darwin" = "aarch64-apple-darwin" ]; then
               MIN_MACOS_VERSION="12.3"
@@ -540,12 +509,7 @@
             find . -type f -name "*.pbxproj" -exec sed -i -e "s/RustDesk/${{ inputs.appname }}/g" {} +
             sed -i -e "s/RustDesk\.app/${{ inputs.appname }}\.app/g" build.py
             
-            # Verify libyuv installation
-            echo "Checking libyuv installation..."
-            pkg-config --libs libyuv || echo "libyuv not found in pkg-config"
-            ls -l /opt/homebrew/Cellar/libyuv || echo "libyuv not found in Homebrew Cellar"
-            
-            ./build.py --flutter --hwcodec ${{ matrix.job.extra-build-args }}
+            ./build.py --flutter
 
         - name: Copy service file
           run: |
