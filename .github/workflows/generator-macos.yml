@@ -483,10 +483,39 @@
             customHeaders: '{"Content-Type": "application/json"}'
             data: '{"uuid": "${{ inputs.uuid }}", "status": "30% complete"}'
 
-        - name: Create MacOS directory structure
+        - name: Create app bundle directories
           run: |
             APP_PATH="./build/macos/Build/Products/Release/${{ inputs.appname }}.app"
             mkdir -p "$APP_PATH/Contents/MacOS"
+            mkdir -p "$APP_PATH/Contents/Frameworks/App.framework/Versions/Current/Resources/flutter_assets/assets"
+
+        - name: Build Flutter app
+          run: |
+            if [ "aarch64-apple-darwin" = "aarch64-apple-darwin" ]; then
+              MIN_MACOS_VERSION="12.3"
+              sed -i -e "s/MACOSX_DEPLOYMENT_TARGET\=[0-9]*.[0-9]*/MACOSX_DEPLOYMENT_TARGET=${MIN_MACOS_VERSION}/" build.py
+              sed -i -e "s/platform :osx, '.*'/platform :osx, '${MIN_MACOS_VERSION}'/" flutter/macos/Podfile
+              sed -i -e "s/osx_minimum_system_version = \"[0-9]*.[0-9]*\"/osx_minimum_system_version = \"${MIN_MACOS_VERSION}\"/" Cargo.toml
+              sed -i -e "s/MACOSX_DEPLOYMENT_TARGET = [0-9]*.[0-9]*;/MACOSX_DEPLOYMENT_TARGET = ${MIN_MACOS_VERSION};/" flutter/macos/Runner.xcodeproj/project.pbxproj
+            fi
+            # Replace app name in all relevant files
+            find . -type f -name "*.plist" -exec sed -i -e "s/RustDesk/${{ inputs.appname }}/g" {} +
+            find . -type f -name "*.pbxproj" -exec sed -i -e "s/RustDesk/${{ inputs.appname }}/g" {} +
+            sed -i -e "s/RustDesk\.app/${{ inputs.appname }}\.app/g" build.py
+            ./build.py --flutter --hwcodec ${{ matrix.job.extra-build-args }}
+
+        - name: Copy service file
+          run: |
+            APP_PATH="./build/macos/Build/Products/Release/${{ inputs.appname }}.app"
+            cp -rf ../target/release/service "$APP_PATH/Contents/MacOS/"
+
+        - name: Verify app bundle structure
+          run: |
+            APP_PATH="./build/macos/Build/Products/Release/${{ inputs.appname }}.app"
+            echo "Checking app bundle structure..."
+            ls -la "$APP_PATH/Contents/MacOS"
+            echo "Checking if service file was copied..."
+            ls -la "$APP_PATH/Contents/MacOS/service" || echo "Service file not found!"
 
         - name: Setup vcpkg with Github Actions binary cache
           uses: lukka/run-vcpkg@v11
@@ -522,18 +551,7 @@
           run: |
             echo -n "${{ env.CUSTOM }}" | cat > ./rustdesk/custom.txt
 
-        - name: Build rustdesk
-          run: |
-            if [ "${{ matrix.job.target }}" = "aarch64-apple-darwin" ]; then
-              MIN_MACOS_VERSION="12.3"
-              sed -i -e "s/MACOSX_DEPLOYMENT_TARGET\=[0-9]*.[0-9]*/MACOSX_DEPLOYMENT_TARGET=${MIN_MACOS_VERSION}/" build.py
-              sed -i -e "s/platform :osx, '.*'/platform :osx, '${MIN_MACOS_VERSION}'/" flutter/macos/Podfile
-              sed -i -e "s/osx_minimum_system_version = \"[0-9]*.[0-9]*\"/osx_minimum_system_version = \"${MIN_MACOS_VERSION}\"/" Cargo.toml
-              sed -i -e "s/MACOSX_DEPLOYMENT_TARGET = [0-9]*.[0-9]*;/MACOSX_DEPLOYMENT_TARGET = ${MIN_MACOS_VERSION};/" flutter/macos/Runner.xcodeproj/project.pbxproj
-            fi
-            sed -i -e "s/RustDesk\.app/${{ inputs.appname }}\.app/" build.py
-            ./build.py --flutter --hwcodec ${{ matrix.job.extra-build-args }}
-
+        
         - name: Report Status - Post Build
           uses: fjogeleit/http-request-action@v1
           with:
@@ -542,16 +560,7 @@
             customHeaders: '{"Content-Type": "application/json"}'
             data: '{"uuid": "${{ inputs.uuid }}", "status": "60% complete"}'
 
-        - name: Create app bundle directories
-          run: |
-            APP_PATH="./build/macos/Build/Products/Release/${{ inputs.appname }}.app"
-            mkdir -p "$APP_PATH/Contents/MacOS"
-
-        - name: Copy service file
-          run: |
-            APP_PATH="./build/macos/Build/Products/Release/${{ inputs.appname }}.app"
-            cp -rf ../target/release/service "$APP_PATH/Contents/MacOS/"
-
+        
         - name: Install rcodesign tool
           if: env.MACOS_P12_BASE64 != null
           shell: bash
