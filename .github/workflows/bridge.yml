@@ -29,7 +29,6 @@ jobs:
               extra-build-args: "",
             }
     steps:
-      
       - name: Checkout source code
         if: ${{ inputs.version == 'master' }}
         uses: actions/checkout@v4
