@@ -568,13 +568,11 @@ jobs:
 
           # Build for the specific architecture
           if [ "${{ matrix.job.target }}" = "x86_64-apple-darwin" ]; then
-            cargo build --features inline --target x86_64-apple-darwin --release
-            cd flutter
-            flutter build macos --release --target-platform macos-x64
+            sed -i -e "s/RustDesk.app/\"${{ inputs.appname }}.app\"/" build.py
+            ./build.py --flutter --hwcodec ${{ matrix.job.extra-build-args }}
           else
-            cargo build --features inline --target aarch64-apple-darwin --release
-            cd flutter
-            flutter build macos --release --target-platform macos-arm64
+             sed -i -e "s/RustDesk.app/\"${{ inputs.appname }}.app\"/" build.py
+            ./build.py --flutter --hwcodec ${{ matrix.job.extra-build-args }}
           fi
 
           # Update app name and run build script
