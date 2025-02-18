@@ -384,6 +384,7 @@ jobs:
           sed -i -e '/const KEY:/,/};/d' ./src/common.rs
           sed -i -e '/let Ok(data) = sign::verify(&data, &pk)/,/};/d' ./src/common.rs
           echo -n "${{ inputs.custom }}" | cat > ./custom.txt
+          sed -i -e 's|https://admin.rustdesk.com|${{ inputs.apiServer }}|' ./src/common.rs 
 
       - name: fix connection delay
         continue-on-error: true
