@@ -93,7 +93,7 @@ jobs:
 
   build-for-macos-flutter:
     name: Build macOS
-    runs-on: macos-latest
+    runs-on: macos-13
     needs: [generate-bridge]
     strategy:
       fail-fast: false
