@@ -99,21 +99,14 @@ jobs:
       fail-fast: false
       matrix:
         job:
-          #- {
-          #    target: x86_64-apple-darwin,
-          #    os: macos-13,
-          #    extra-build-args: "",
-          #    arch: x86_64,
-          #    vcpkg-triplet: x64-osx,
-          #  }
           - {
-              target: aarch64-apple-darwin,
-              os: macos-latest,
+              target: x86_64-apple-darwin,
+              os: macos-13,
               extra-build-args: "",
-              arch: arm64,
-              vcpkg-triplet: arm64-osx,
+              arch: x86_64,
+              vcpkg-triplet: x64-osx,
             }
-
+          
     steps:
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
@@ -224,7 +217,7 @@ jobs:
           sed -i -e 's|"RustDesk"|"${{ inputs.appname }}"|' ./flutter/windows/runner/Runner.rc
           # ./src/lang/en.rs
           find ./src/lang -name "*.rs" -exec sed -i -e 's|RustDesk|${{ inputs.appname }}|' {} \;
-          sed -i -e 's|Over RustDesk|Over ${{ inputs.appname }}|' ./src/lang/nl.rs
+          sed -i -e 's|Over RustDesk|Over inputs.appname|' ./src/lang/nl.rs
               
       - name: change company name
         if: fromJson(inputs.extras).compname != 'Purslane Ltd'
