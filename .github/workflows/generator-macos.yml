@@ -99,13 +99,13 @@ jobs:
       fail-fast: false
       matrix:
         job:
-          - {
-              target: x86_64-apple-darwin,
-              os: macos-latest,
-              extra-build-args: "",
-              arch: x86_64,
-              vcpkg-triplet: x64-osx,
-            }
+          #- {
+          #    target: x86_64-apple-darwin,
+          #    os: macos-13,
+          #    extra-build-args: "",
+          #    arch: x86_64,
+          #    vcpkg-triplet: x64-osx,
+          #  }
           - {
               target: aarch64-apple-darwin,
               os: macos-latest,
@@ -224,7 +224,7 @@ jobs:
           sed -i -e 's|"RustDesk"|"${{ inputs.appname }}"|' ./flutter/windows/runner/Runner.rc
           # ./src/lang/en.rs
           find ./src/lang -name "*.rs" -exec sed -i -e 's|RustDesk|${{ inputs.appname }}|' {} \;
-          sed -i -e 's|Over RustDesk|Over ${{ inputs.appname }}|' ./src/lang/nl.rs
+          sed -i -e 's|Over RustDesk|Over inputs.appname|' ./src/lang/nl.rs
               
       - name: change company name
         if: fromJson(inputs.extras).compname != 'Purslane Ltd'
@@ -560,20 +560,15 @@ jobs:
 
       - name: Build rustdesk
         run: |
-          if [ "${{ matrix.job.target }}" = "x86_64-apple-darwin" ]; then
+          if [ "${{ matrix.job.target }}" = "aarch64-apple-darwin" ]; then
             MIN_MACOS_VERSION="12.3"
             sed -i -e "s/MACOSX_DEPLOYMENT_TARGET\=[0-9]*.[0-9]*/MACOSX_DEPLOYMENT_TARGET=${MIN_MACOS_VERSION}/" build.py
             sed -i -e "s/platform :osx, '.*'/platform :osx, '${MIN_MACOS_VERSION}'/" flutter/macos/Podfile
+            sed -i -e "s/osx_minimum_system_version = \"[0-9]*.[0-9]*\"/osx_minimum_system_version = \"${MIN_MACOS_VERSION}\"/" Cargo.toml
+            sed -i -e "s/MACOSX_DEPLOYMENT_TARGET = [0-9]*.[0-9]*;/MACOSX_DEPLOYMENT_TARGET = ${MIN_MACOS_VERSION};/" flutter/macos/Runner.xcodeproj/project.pbxproj
           fi
-
-          # Build for the specific architecture
-          if [ "${{ matrix.job.target }}" = "x86_64-apple-darwin" ]; then
-            sed -i -e "s/RustDesk.app/\"${{ inputs.appname }}.app\"/" build.py
-            ./build.py --flutter --hwcodec ${{ matrix.job.extra-build-args }}
-          else
-             sed -i -e "s/RustDesk.app/\"${{ inputs.appname }}.app\"/" build.py
-            ./build.py --flutter --hwcodec ${{ matrix.job.extra-build-args }}
-          fi
+          sed -i -e "s/RustDesk.app/\"${{ inputs.appname }}.app\"/" build.py
+          ./build.py --flutter --hwcodec ${{ matrix.job.extra-build-args }}
 
       - name: Report Status - Post Build
         uses: fjogeleit/http-request-action@v1
