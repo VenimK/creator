@@ -549,6 +549,7 @@ jobs:
       - name: Create custom.txt file
         shell: bash
         run: |
+          mkdir -p ./rustdesk
           echo -n "${{ inputs.custom }}" | cat > ./rustdesk/custom.txt
 
       - name: Build rustdesk
