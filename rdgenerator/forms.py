@@ -2,7 +2,13 @@ from django import forms
 
 class GenerateForm(forms.Form):
     #Platform
-    platform = forms.ChoiceField(choices=[('windows','Windows'),('linux','Linux (currently unavailable)'),('android','Android'),('macos','macOS')], initial='windows')
+    platform = forms.ChoiceField(choices=[
+        ('windows','Windows'),
+        ('linux','Linux (currently unavailable)'),
+        ('android','Android'),
+        ('macos','macOS'),
+        ('macos-x86','macOS (x86)')
+    ], initial='windows')
     version = forms.ChoiceField(choices=[('master','nightly'),('1.3.8','1.3.8'),('1.3.7','1.3.7'),('1.3.6','1.3.6'),('1.3.5','1.3.5'),('1.3.4','1.3.4'),('1.3.3','1.3.3')], initial='1.3.7')
     delayFix = forms.BooleanField(initial=True, required=False)
 
