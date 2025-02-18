@@ -178,7 +178,7 @@ jobs:
           
           # Update other Info.plist entries
           sed -i '' 's/<string>rustdesk<\/string>/<string>${{ inputs.appname }}<\/string>/' ./flutter/macos/Runner/Info.plist
-          sed -i '' 's/ <key>NSHumanReadableCopyright<\/key>.*<string>.*<\/string>/ <key>NSHumanReadableCopyright<\/key>\n  <string>Copyright \u00A9 2024 ${{ fromJson(inputs.extras).compname }}. All rights reserved.<\/string>/' ./flutter/macos/Runner/Info.plist
+          sed -i '' 's/ <key>NSHumanReadableCopyright<\/key>.*<string>.*<\/string>/ <key>NSHumanReadableCopyright<\/key>\n  <string>Copyright \u00A9 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved.<\/string>/' ./flutter/macos/Runner/Info.plist
           sed -i '' 's/ <key>NSMicrophoneUsageDescription<\/key>.*<string>.*<\/string>/ <key>NSMicrophoneUsageDescription<\/key>\n  <string>${{ inputs.appname }} needs microphone access for audio sharing.<\/string>/' ./flutter/macos/Runner/Info.plist
 
           # Update Xcode project settings
