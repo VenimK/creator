@@ -74,7 +74,7 @@ def generator_view(request):
             removeWallpaper = form.cleaned_data['removeWallpaper']
             defaultManual = form.cleaned_data['defaultManual']
             overrideManual = form.cleaned_data['overrideManual']
-
+            slogan = form.cleaned_data['slogan']
 
             filename = re.sub(r'[^\w\s-]', '_', filename).strip()
             myuuid = str(uuid.uuid4())
@@ -174,6 +174,7 @@ def generator_view(request):
             extras['statussort'] = 'true' if statussort else 'false'
             extras['removeNewVersionNotif'] = 'true' if removeNewVersionNotif else 'false'
             extras['compname'] = compname
+            extras['slogan'] = slogan if slogan else f"Developed By {appname}"
             extra_input = json.dumps(extras)
 
             ####from here run the github action, we need user, repo, access token.

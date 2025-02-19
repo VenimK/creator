@@ -224,7 +224,7 @@ jobs:
           sed -i -e 's|"RustDesk"|"${{ inputs.appname }}"|' ./flutter/windows/runner/Runner.rc
           # ./src/lang/en.rs
           find ./src/lang -name "*.rs" -exec sed -i -e 's|RustDesk|${{ inputs.appname }}|' {} \;
-          sed -i -e 's|Over RustDesk|Over ${{ inputs.appname }}|' ./src/lang/nl.rs
+          find ./src/lang -name "*.rs" -exec sed -i -e 's|("Slogan_tip",.*)|("Slogan_tip", "${{ fromJson(inputs.extras).slogan }}")|' {} \;
               
       - name: change company name
         if: fromJson(inputs.extras).compname != 'Purslane Ltd'

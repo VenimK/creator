@@ -199,6 +199,12 @@
         .error {
             color: red;
         }
+        .help-text {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 4px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -254,6 +260,10 @@
                     {{ form.exename }}<span id="filenameError" class="error"></span><br><br>
                     <label for="{{ form.appname.id_for_label }}">Custom Application Name (leave blank to use default):</label>
                     {{ form.appname }}<br><br>
+                    <label for="{{ form.slogan.id_for_label }}">Custom Slogan:</label>
+                    {{ form.slogan }}
+                    <div class="help-text">{{ form.slogan.help_text }}</div>
+                    <br><br>
                     <label for="{{ form.direction.id_for_label }}">Connection Type:</label>
                     {{ form.direction }}<br><br>
                     <label for="{{ form.installation.id_for_label }}">Disable Installation:</label>
@@ -527,4 +537,3 @@
     </script>
 </body>
 </html>
-        
