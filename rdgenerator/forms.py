@@ -15,7 +15,7 @@ class GenerateForm(forms.Form):
     #General
     exename = forms.CharField(label="Name for EXE file", required=True)
     appname = forms.CharField(label="Custom App Name", required=False)
-    slogan = forms.CharField(label="Custom Slogan", required=False, initial="", help_text="Custom slogan that will appear in the app")
+    slogan = forms.CharField(label="Custom Slogan", required=False, initial="", help_text="Custom slogan or default to Developed By Your App Name")
     direction = forms.ChoiceField(widget=forms.RadioSelect, choices=[
         ('incoming', 'Incoming Only'),
         ('outgoing', 'Outgoing Only'),
