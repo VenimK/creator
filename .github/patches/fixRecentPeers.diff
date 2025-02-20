@@ -1,0 +1,7 @@
+diff --git a/src/bridge_generated.rs b/src/bridge_generated.rs
+index d9dc3eec4..76f386b76 100644
+--- a/src/bridge_generated.rs
++++ b/src/bridge_generated.rs
+@@ -2479,7 +2479,7 @@
+             move |task_callback| Ok(main_load_recent_peers(api_get_all))
+     };

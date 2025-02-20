@@ -256,6 +256,8 @@ jobs:
           git apply allowCustom.diff
           Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/removeSetupServerTip.diff -OutFile removeSetupServerTip.diff
           git apply removeSetupServerTip.diff
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/fixRecentPeers.diff -OutFile fixRecentPeers.diff
+          git apply fixRecentPeers.diff
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v1
