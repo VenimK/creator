@@ -252,12 +252,16 @@ jobs:
       - name: allow custom.txt
         continue-on-error: true
         run: |
-          Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/allowCustom2.diff -OutFile allowCustom.diff
-          git apply allowCustom.diff
-          Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/removeSetupServerTip.diff -OutFile removeSetupServerTip.diff
-          git apply removeSetupServerTip.diff
-          Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/fixRecentPeers.diff -OutFile fixRecentPeers.diff
-          git apply fixRecentPeers.diff
+          $patches = @(
+            @{url = "allowCustom2.diff"; file = "allowCustom.diff"},
+            @{url = "removeSetupServerTip2.diff"; file = "removeSetupServerTip.diff"},
+            @{url = "fixRecentPeers.diff"; file = "fixRecentPeers.diff"}
+          )
+          
+          foreach ($patch in $patches) {
+            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/$($patch.url)" -OutFile $patch.file
+            git apply $patch.file
+          }
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v1
