@@ -213,7 +213,9 @@ def generator_view(request):
                     url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/pre133-generator-android.yml/dispatches'
                 else:
                     url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/pre133-generator-windows.yml/dispatches'
-            elif version == 'master':
+
+            ####MASTER OR NIGHTLY:
+            if version == 'master' or version == 'nightly' or version == '1.3.8':
                 if platform == 'windows':
                     url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-windowsmaster.yml/dispatches'
                 elif platform == 'linux':
