@@ -210,7 +210,7 @@ jobs:
           sed -i -e 's|Purslane Ltd.|${{ fromJson(inputs.extras).compname }}|' ./res/setup.nsi
           sed -i -e 's|PURSLANE|${{ fromJson(inputs.extras).compname }}|' ./res/msi/preprocess.py
           sed -i -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./res/msi/preprocess.py
-          sed -i -e 's|"Copyright © 2025 Purslane Ltd. All rights reserved."|"Copyright © 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved."|' ./flutter/windows/runner/Runner.rc
+          sed -i -e 's|"Copyright  2025 Purslane Ltd. All rights reserved."|"Copyright  2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved."|' ./flutter/windows/runner/Runner.rc
           sed -i -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./flutter/windows/runner/Runner.rc
           sed -i -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./Cargo.toml
           sed -i -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./libs/portable/Cargo.toml
@@ -624,13 +624,27 @@ jobs:
 
       
       - name: rename rustdesk.exe to filename.exe
-        run: |
-          mv ./SignOutput/rustdesk.exe "./SignOutput/${{ inputs.filename }}.exe" || echo "rustdesk"
-
-      - name: rename rustdesk.msi to filename.msi
+        shell: pwsh
         continue-on-error: true
         run: |
-          mv ./SignOutput/rustdesk.msi "./SignOutput/${{ inputs.filename }}.msi" || echo "rustdesk"
+          if (!(Test-Path -Path "./SignOutput")) {
+            New-Item -ItemType Directory -Path "./SignOutput"
+          }
+          if (Test-Path -Path "./SignOutput/rustdesk.exe") {
+            Move-Item -Path "./SignOutput/rustdesk.exe" -Destination "./SignOutput/${{ inputs.filename }}.exe" -Force
+          } else {
+            Write-Host "Warning: rustdesk.exe not found"
+          }
+
+      - name: rename rustdesk.msi to filename.msi
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          if (Test-Path -Path "./SignOutput/rustdesk.msi") {
+            Move-Item -Path "./SignOutput/rustdesk.msi" -Destination "./SignOutput/${{ inputs.filename }}.msi" -Force
+          } else {
+            Write-Host "Warning: rustdesk.msi not found"
+          }
 
       - name: send file to rdgen server
         if: ${{ fromJson(inputs.extras).rdgen == 'true' }}
