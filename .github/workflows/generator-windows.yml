@@ -575,6 +575,14 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
+      - name: Set Version
+        run: |
+          if ("${{ inputs.version }}" -eq "master") {
+            echo "PACKAGE_VERSION=1.0.0-master" >> $env:GITHUB_ENV
+          } else {
+            echo "PACKAGE_VERSION=${{ inputs.version }}" >> $env:GITHUB_ENV
+          }
+
       - name: Preprocess MSI files
         working-directory: res/msi
         run: |
@@ -585,14 +593,13 @@ jobs:
       - name: Restore NuGet packages
         working-directory: res/msi
         run: |
-          nuget restore msi.sln
-          dotnet restore Package/Package.wixproj
+          nuget restore msi.sln -MSBuildVersion 17.0 -MSBuildPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin" -Properties Configuration=Release;Platform=x64;Version=$env:PACKAGE_VERSION
+          dotnet restore Package/Package.wixproj /p:Version=$env:PACKAGE_VERSION
 
       - name: Build MSI
         working-directory: res/msi
         run: |
-          $version = if ("${{ inputs.version }}" -eq "master") { "0.0.0-master" } else { "${{ inputs.version }}" }
-          MSBuild msi.sln /p:Configuration=Release /p:Platform=x64 /p:Version=$version
+          MSBuild msi.sln /p:Configuration=Release /p:Platform=x64 /p:Version=$env:PACKAGE_VERSION
           cp ./Package/bin/x64/Release/en-us/Package.msi ../../SignOutput/rustdesk-latest.msi
           mv ./Package/bin/x64/Release/en-us/Package.msi ../../SignOutput/rustdesk.msi
           sha256sum ../../SignOutput/rustdesk.msi
