@@ -213,6 +213,15 @@ def generator_view(request):
                     url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/pre133-generator-android.yml/dispatches'
                 else:
                     url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/pre133-generator-windows.yml/dispatches'
+            elif version == 'master':
+                if platform == 'windows':
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-windowsmaster.yml/dispatches'
+                elif platform == 'linux':
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-linuxmaster.yml/dispatches'
+                elif platform == 'android':
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-androidmaster.yml/dispatches'
+                elif platform == 'macos' or platform == 'macos-x86':
+                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-macosmaster.yml/dispatches'
 
             #url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rustdesk/actions/workflows/test.yml/dispatches'  
             data = {
