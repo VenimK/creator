@@ -76,7 +76,15 @@ def generator_view(request):
             overrideManual = form.cleaned_data['overrideManual']
             slogan = form.cleaned_data['slogan']
 
-            filename = re.sub(r'[^\w\s-]', '_', filename).strip()
+
+
+            if all(char.isascii() for char in filename):
+                filename = re.sub(r'[^\w\s-]', '_', filename).strip()
+                filename = filename.replace(" ","_")
+            else:
+                filename = "rustdesk"
+            if not all(char.isascii() for char in appname):
+                appname = "rustdesk"
             myuuid = str(uuid.uuid4())
             protocol = _settings.PROTOCOL
             host = request.get_host()
@@ -214,16 +222,6 @@ def generator_view(request):
                 else:
                     url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/pre133-generator-windows.yml/dispatches'
 
-            ####MASTER OR NIGHTLY:
-            if version == 'master' or version == 'nightly' or version == '1.3.8':
-                if platform == 'windows':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-windowsmaster.yml/dispatches'
-                elif platform == 'linux':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-linuxmaster.yml/dispatches'
-                elif platform == 'android':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-androidmaster.yml/dispatches'
-                elif platform == 'macos' or platform == 'macos-x86':
-                    url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-macosmaster.yml/dispatches'
 
             #url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rustdesk/actions/workflows/test.yml/dispatches'  
             data = {
