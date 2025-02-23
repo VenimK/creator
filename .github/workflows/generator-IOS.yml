@@ -162,7 +162,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          brew install imagemagick nasm yasm
+          brew install imagemagick nasm yasm potrace
           echo "$(brew --prefix imagemagick)/bin" >> $GITHUB_PATH
 
       - name: Update macOS Info.plist and settings
