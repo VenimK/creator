@@ -159,10 +159,10 @@ jobs:
               name: bridge-artifact
               path: ./
 
-      - name: Install imagemagick and potrace and nasm and and
+      - name: Install dependencies
         shell: bash
         run: |
-          brew install imagemagick potrace nasm cmake gcc wget ninja
+          brew install imagemagick nasm yasm
           echo "$(brew --prefix imagemagick)/bin" >> $GITHUB_PATH
 
       - name: Update macOS Info.plist and settings
@@ -316,7 +316,8 @@ jobs:
         
       - uses: Swatinem/rust-cache@v2
         with:
-          prefix-key: ${{ matrix.job.os }}
+          prefix-key: rustdesk-lib-cache-ios
+          key: ${{ matrix.job.target }}
 
   
       - name: Magick stuff for macOS
@@ -552,6 +553,7 @@ jobs:
             done
             exit 1
           fi
+          head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
 
       - name: Report Status
         uses: fjogeleit/http-request-action@v1
@@ -570,7 +572,7 @@ jobs:
       - name: Build rustdesk lib
         run: |
           rustup target add ${{ matrix.job.target }}
-          cargo build --features flutter,hwcodec --release --target ${{ matrix.job.target }} --lib
+          cargo build --features flutter --release --target ${{ matrix.job.target }} --lib
         
       - name: Upload liblibrustdesk.a Artifacts
         uses: actions/upload-artifact@master
