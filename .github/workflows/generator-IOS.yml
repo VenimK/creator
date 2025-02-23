@@ -572,8 +572,8 @@ jobs:
 
       - name: Build rustdesk lib
         run: |
-          rustup target add ${{ matrix.job.target }}
-          cargo build --features flutter --release --target ${{ matrix.job.target }} --lib
+          rustup target add aarch64-apple-ios
+          cargo build --features flutter,hwcodec --release --target aarch64-apple-ios --lib
         
       - name: Upload liblibrustdesk.a Artifacts
         uses: actions/upload-artifact@master
