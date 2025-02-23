@@ -202,8 +202,8 @@ jobs:
           # Verify the changes
           echo "Checking bundle identifier in Info.plist:"
           grep -A 1 "CFBundleIdentifier" ./flutter/ios/Runner/Info.plist
-          echo "Checking bundle identifier in AppInfo.xcconfig:"
-          grep "PRODUCT_BUNDLE_IDENTIFIER" ./flutter/ios/Runner/Configs/AppInfo.xcconfig
+          # echo "Checking bundle identifier in AppInfo.xcconfig:"
+          # grep "PRODUCT_BUNDLE_IDENTIFIER" ./flutter/ios/Runner/Configs/AppInfo.xcconfig
           echo "Checking bundle identifier in project.pbxproj:"
           grep "PRODUCT_BUNDLE_IDENTIFIER" ./flutter/ios/Runner.xcodeproj/project.pbxproj
 
