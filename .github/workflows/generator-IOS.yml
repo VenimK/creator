@@ -69,7 +69,7 @@ env:
   TAG_NAME: "${{ inputs.upload-tag }}"
   VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
   # vcpkg version: 2024.07.12
-  VCPKG_COMMIT_ID: "b2cb0da531c2f1f740045bfe7c4dac59f0b2b69c"
+  VCPKG_COMMIT_ID: "6f29f12e82a8293156836ad81cc9bf5af41fe836"
   VERSION: "${{ fromJson(inputs.extras).version }}"
   NDK_VERSION: "r27c"
   #signing keys env variable checks
@@ -93,7 +93,7 @@ jobs:
 
   build-for-macos-flutter:
     name: build rustdesk ios ipa
-    runs-on: macos-latest
+    runs-on: macos-13
     needs: [generate-bridge]
     strategy:
       fail-fast: false
@@ -554,6 +554,7 @@ jobs:
             exit 1
           fi
           head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
+        shell: bash  
 
       - name: Report Status
         uses: fjogeleit/http-request-action@v1
