@@ -170,42 +170,42 @@ jobs:
         shell: bash
         run: |
           # Backup the original files
-          cp ./flutter/macos/Runner/Info.plist ./flutter/macos/Runner/Info.plist.bak
-          cp ./flutter/macos/Runner/Configs/AppInfo.xcconfig ./flutter/macos/Runner/Configs/AppInfo.xcconfig.bak
-          cp ./flutter/macos/Runner.xcodeproj/project.pbxproj ./flutter/macos/Runner.xcodeproj/project.pbxproj.bak
+          cp ./flutter/ios/Runner/Info.plist ./flutter/ios/Runner/Info.plist.bak
+          cp ./flutter/ios/Runner/Configs/AppInfo.xcconfig ./flutter/ios/Runner/Configs/AppInfo.xcconfig.bak
+          cp ./flutter/ios/Runner.xcodeproj/project.pbxproj ./flutter/ios/Runner.xcodeproj/project.pbxproj.bak
 
           # Define the bundle identifier consistently
           BUNDLE_ID="com.carriez.${{ inputs.appname }}"
           
           # Update project.pbxproj
-          sed -i '' -e "s/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/g" ./flutter/macos/Runner.xcodeproj/project.pbxproj
-          sed -i '' -e "s/PRODUCT_BUNDLE_IDENTIFIER = \".*\";/PRODUCT_BUNDLE_IDENTIFIER = \"$BUNDLE_ID\";/g" ./flutter/macos/Runner.xcodeproj/project.pbxproj
+          sed -i '' -e "s/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/g" ./flutter/ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' -e "s/PRODUCT_BUNDLE_IDENTIFIER = \".*\";/PRODUCT_BUNDLE_IDENTIFIER = \"$BUNDLE_ID\";/g" ./flutter/ios/Runner.xcodeproj/project.pbxproj
           
           # Update Info.plist
-          sed -i '' -e "s/\$(PRODUCT_BUNDLE_IDENTIFIER)/$BUNDLE_ID/g" ./flutter/macos/Runner/Info.plist
-          sed -i '' -e "s/com\.carriez\.rustdesk/$BUNDLE_ID/g" ./flutter/macos/Runner/Info.plist
-          sed -i '' -e 's|<key>CFBundleDisplayName</key>.*<string>.*</string>|<key>CFBundleDisplayName</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/macos/Runner/Info.plist
-          sed -i '' -e "s|<key>CFBundleIdentifier</key>.*<string>.*</string>|<key>CFBundleIdentifier</key>\n\t<string>$BUNDLE_ID</string>|" ./flutter/macos/Runner/Info.plist
+          sed -i '' -e "s/\$(PRODUCT_BUNDLE_IDENTIFIER)/$BUNDLE_ID/g" ./flutter/ios/Runner/Info.plist
+          sed -i '' -e "s/com\.carriez\.rustdesk/$BUNDLE_ID/g" ./flutter/ios/Runner/Info.plist
+          sed -i '' -e 's|<key>CFBundleDisplayName</key>.*<string>.*</string>|<key>CFBundleDisplayName</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/ios/Runner/Info.plist
+          sed -i '' -e "s|<key>CFBundleIdentifier</key>.*<string>.*</string>|<key>CFBundleIdentifier</key>\n\t<string>$BUNDLE_ID</string>|" ./flutter/ios/Runner/Info.plist
           
           # Update AppInfo.xcconfig
-          sed -i '' -e 's|PRODUCT_NAME = .*|PRODUCT_NAME = ${{ inputs.appname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
-          sed -i '' -e "s|PRODUCT_BUNDLE_IDENTIFIER = .*|PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID|" ./flutter/macos/Runner/Configs/AppInfo.xcconfig
+          sed -i '' -e 's|PRODUCT_NAME = .*|PRODUCT_NAME = ${{ inputs.appname }}|' ./flutter/ios/Runner/Configs/AppInfo.xcconfig
+          sed -i '' -e "s|PRODUCT_BUNDLE_IDENTIFIER = .*|PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID|" ./flutter/ios/Runner/Configs/AppInfo.xcconfig
           
           # Update other Info.plist entries
-          sed -i '' 's/<string>rustdesk<\/string>/<string>${{ inputs.appname }}<\/string>/' ./flutter/macos/Runner/Info.plist
-          sed -i '' 's/ <key>NSHumanReadableCopyright<\/key>.*<string>.*<\/string>/ <key>NSHumanReadableCopyright<\/key>\n  <string>Copyright \u00A9 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved.<\/string>/' ./flutter/macos/Runner/Info.plist
-          sed -i '' 's/ <key>NSMicrophoneUsageDescription<\/key>.*<string>.*<\/string>/ <key>NSMicrophoneUsageDescription<\/key>\n  <string>${{ inputs.appname }} needs microphone access for audio sharing.<\/string>/' ./flutter/macos/Runner/Info.plist
+          sed -i '' 's/<string>rustdesk<\/string>/<string>${{ inputs.appname }}<\/string>/' ./flutter/ios/Runner/Info.plist
+          sed -i '' 's/ <key>NSHumanReadableCopyright<\/key>.*<string>.*<\/string>/ <key>NSHumanReadableCopyright<\/key>\n  <string>Copyright \u00A9 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved.<\/string>/' ./flutter/ios/Runner/Info.plist
+          sed -i '' 's/ <key>NSMicrophoneUsageDescription<\/key>.*<string>.*<\/string>/ <key>NSMicrophoneUsageDescription<\/key>\n  <string>${{ inputs.appname }} needs microphone access for audio sharing.<\/string>/' ./flutter/ios/Runner/Info.plist
 
           # Update Xcode project settings
-          sed -i '' -e 's/PRODUCT_NAME = "RustDesk"/PRODUCT_NAME = "${{ inputs.appname }}"/' ./flutter/macos/Runner.xcodeproj/project.pbxproj
+          sed -i '' -e 's/PRODUCT_NAME = "RustDesk"/PRODUCT_NAME = "${{ inputs.appname }}"/' ./flutter/ios/Runner.xcodeproj/project.pbxproj
           
           # Verify the changes
           echo "Checking bundle identifier in Info.plist:"
-          grep -A 1 "CFBundleIdentifier" ./flutter/macos/Runner/Info.plist
+          grep -A 1 "CFBundleIdentifier" ./flutter/ios/Runner/Info.plist
           echo "Checking bundle identifier in AppInfo.xcconfig:"
-          grep "PRODUCT_BUNDLE_IDENTIFIER" ./flutter/macos/Runner/Configs/AppInfo.xcconfig
+          grep "PRODUCT_BUNDLE_IDENTIFIER" ./flutter/ios/Runner/Configs/AppInfo.xcconfig
           echo "Checking bundle identifier in project.pbxproj:"
-          grep "PRODUCT_BUNDLE_IDENTIFIER" ./flutter/macos/Runner.xcodeproj/project.pbxproj
+          grep "PRODUCT_BUNDLE_IDENTIFIER" ./flutter/ios/Runner.xcodeproj/project.pbxproj
 
       - name: change appname to custom
         if: inputs.appname != 'rustdesk'
@@ -240,7 +240,7 @@ jobs:
         shell: bash
         run: |
           sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./flutter/lib/desktop/pages/desktop_setting_page.dart
-          sed -i '' -e 's|Purslane Ltd.|${{ fromJson(inputs.extras).compname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
+          sed -i '' -e 's|Purslane Ltd.|${{ fromJson(inputs.extras).compname }}|' ./flutter/ios/Runner/Configs/AppInfo.xcconfig
           sed -i '' -e 's|"Copyright \u00A9 2025 Purslane Ltd. All rights reserved."|"Copyright \u00A9 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved."|' ./flutter/windows/runner/Runner.rc
           sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./flutter/windows/runner/Runner.rc
           sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./Cargo.toml
@@ -328,8 +328,8 @@ jobs:
           # Create all necessary directories first
           mkdir -p ./res
           mkdir -p ./flutter/assets
-          mkdir -p ./flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset
-          mkdir -p ./macos/Runner/Assets.xcassets/AppIcon.appiconset
+          mkdir -p ./flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset
+          mkdir -p ./ios/Runner/Assets.xcassets/AppIcon.appiconset
           mkdir -p ./rustdesk/data/flutter_assets/assets
 
           # Download icon using curl with additional SSL options
@@ -363,13 +363,13 @@ jobs:
           rm ./temp_icon.pbm
           
           # Create macOS app icons
-          magick ./res/icon.png -resize 16x16 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_16.png"
-          magick ./res/icon.png -resize 32x32 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png"
-          magick ./res/icon.png -resize 64x64 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_64.png"
-          magick ./res/icon.png -resize 128x128 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_128.png"
-          magick ./res/icon.png -resize 256x256 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png"
-          magick ./res/icon.png -resize 512x512 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png"
-          magick ./res/icon.png -resize 1024x1024 "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png"
+          magick ./res/icon.png -resize 16x16 "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_16.png"
+          magick ./res/icon.png -resize 32x32 "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png"
+          magick ./res/icon.png -resize 64x64 "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_64.png"
+          magick ./res/icon.png -resize 128x128 "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_128.png"
+          magick ./res/icon.png -resize 256x256 "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png"
+          magick ./res/icon.png -resize 512x512 "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png"
+          magick ./res/icon.png -resize 1024x1024 "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png"
 
           # Create macOS specific icons
           magick ./res/icon.png -resize 128x128 ./res/mac-icon.png
@@ -382,17 +382,17 @@ jobs:
 
           # Create AppIcon.icns (macOS native icon format)
           mkdir -p ./iconset.iconset
-          cp "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_16.png" "./iconset.iconset/icon_16x16.png"
-          cp "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png" "./iconset.iconset/icon_16x16@2x.png"
-          cp "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png" "./iconset.iconset/icon_32x32.png"
-          cp "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_64.png" "./iconset.iconset/icon_32x32@2x.png"
-          cp "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_128.png" "./iconset.iconset/icon_128x128.png"
-          cp "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png" "./iconset.iconset/icon_128x128@2x.png"
-          cp "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png" "./iconset.iconset/icon_256x256.png"
-          cp "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png" "./iconset.iconset/icon_256x256@2x.png"
-          cp "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png" "./iconset.iconset/icon_512x512.png"
-          cp "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png" "./iconset.iconset/icon_512x512@2x.png"
-          iconutil -c icns ./iconset.iconset -o ./flutter/macos/Runner/AppIcon.icns
+          cp "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_16.png" "./iconset.iconset/icon_16x16.png"
+          cp "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png" "./iconset.iconset/icon_16x16@2x.png"
+          cp "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png" "./iconset.iconset/icon_32x32.png"
+          cp "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_64.png" "./iconset.iconset/icon_32x32@2x.png"
+          cp "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_128.png" "./iconset.iconset/icon_128x128.png"
+          cp "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png" "./iconset.iconset/icon_128x128@2x.png"
+          cp "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png" "./iconset.iconset/icon_256x256.png"
+          cp "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png" "./iconset.iconset/icon_256x256@2x.png"
+          cp "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png" "./iconset.iconset/icon_512x512.png"
+          cp "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png" "./iconset.iconset/icon_512x512@2x.png"
+          iconutil -c icns ./iconset.iconset -o ./flutter/ios/Runner/AppIcon.icns
           rm -rf ./iconset.iconset
           
           # Create Contents.json for macOS app icon
@@ -413,18 +413,18 @@ jobs:
               "version": 1,
               "author": "xcode"
             }
-          }' > "flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json"
+          }' > "flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json"
           
           # Copy icons and Contents.json to both locations
-          cp -r flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/* macos/Runner/Assets.xcassets/AppIcon.appiconset/
+          cp -r flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/* ios/Runner/Assets.xcassets/AppIcon.appiconset/
           
           # Verify files exist and show their sizes
           echo "Verifying generated files:"
           ls -lh ./res/mac-tray-dark-x2.png
           ls -lh ./res/mac-tray-light-x2.png
           ls -lh ./res/mac-icon.png
-          echo "Flutter macOS app icons:"
-          ls -lh flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset/
+          echo "Flutter iOS app icons:"
+          ls -lh flutter/ios/Runner/Assets.xcassets/AppIcon.appiconset/
           echo "Flutter assets:"
           ls -lh flutter/assets/icon.*
           echo "RustDesk Flutter assets:"
@@ -443,7 +443,7 @@ jobs:
           echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${{ inputs.appname }}</title></head><body></body></html>' > web/index.html
           
           # Ensure the AppIcon.appiconset directory exists
-          mkdir -p macos/Runner/Assets.xcassets/AppIcon.appiconset
+          mkdir -p ios/Runner/Assets.xcassets/AppIcon.appiconset
           
           # Copy the processed icons to Flutter locations
           cp ../res/mac-icon.png ./assets/icon.png
