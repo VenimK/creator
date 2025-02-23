@@ -201,6 +201,20 @@
         .error {
             color: red;
         }
+        .errorlist {
+            color: red;
+            display: flex; /* Enable flexbox for centering */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically (if needed) */
+            list-style: none; /* Remove bullet points if it's a list */
+            padding: 0; /* Remove default padding */
+            margin: 10px auto; /* Center the list itself, add some top/bottom margin */
+            width: fit-content; /* Make the width fit the content */
+        }
+
+        .errorlist li {
+            margin: 5px; /* Add some spacing between list items */
+        }
         .help-text {
             font-size: 0.9em;
             color: #666;
@@ -234,6 +248,25 @@
                 </div>
             </div>
         </div>
+        {% if form.iconfile.errors %}
+
+
+            <ul class="errorlist">
+
+
+                {% for error in form.iconfile.errors %}
+
+
+                    <li>{{ error }}</li>
+
+
+                {% endfor %}
+
+
+            </ul>
+
+
+        {% endif %}
         <div class="platform">
             <h2><i class="fas fa-desktop"></i> Select Platform</h2>
                 <div class="platform-icons">
@@ -249,6 +282,7 @@
                     <option value="android">Android</option>
                     <option value="macos">macOS</option>
                     <option value="macos-x86">macOS (x86)</option>
+                    <option value="ios">iOS</option>
                 </select>
                 <label for="{{ form.version.id_for_label }}">Rustdesk Version:</label>
                 {{ form.version }}

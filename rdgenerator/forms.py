@@ -8,7 +8,8 @@ class GenerateForm(forms.Form):
         ('linux','Linux (currently unavailable)'),
         ('android','Android'),
         ('macos','macOS'),
-        ('macos-x86','macOS (x86)')
+        ('macos-x86','macOS (x86)'),
+        ('ios','iOS')
     ], initial='macos')
     version = forms.ChoiceField(
         choices=[('master','nightly'),('1.3.7','1.3.7'),('1.3.6','1.3.6'),('1.3.5','1.3.5'),('1.3.4','1.3.4'),('1.3.3','1.3.3')], 
@@ -93,6 +94,10 @@ class GenerateForm(forms.Form):
     def clean_iconfile(self):
         print("checking icon")
         image = self.cleaned_data['iconfile']
+        # Return if no file was uploaded
+        if not image:
+            return image
+            
         try:
             # Open the image using Pillow
             img = Image.open(image)
