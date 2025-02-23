@@ -143,7 +143,7 @@
             {% elif platform == 'macos-x86' %}
                 <a href='/download?filename={{filename}}.dmg&uuid={{uuid}}' class="download-link">Download {{filename}}.dmg</a>
             {% elif platform == 'ios' %}
-                <a href='/download?filename={{filename}}.dmg&uuid={{uuid}}' class="download-link">Download {{filename}}.ipa</a>
+                <a href='/download?filename={{filename}}.ipa&uuid={{uuid}}' class="download-link">Download {{filename}}.ipa</a>
             {% else %}
                 <p>Error: No file generated</p>
             {% endif %}
