@@ -157,6 +157,7 @@
                 'macos': document.getElementById('macosLogo'),
                 'linux': document.getElementById('linuxLogo'),
                 'android': document.getElementById('androidLogo')
+                'macos-x86': document.getElementById('macosLogo')
             };
 
             // Reset all logos
@@ -176,6 +177,9 @@
             } else if (platform === 'android') {
                 document.getElementById('pageTitle').textContent = 'Generating Android Build';
                 platformLogos.android.style.display = 'block';
+            } else if (platform === 'macos-x86') {
+                document.getElementById('pageTitle').textContent = 'Generating MacOSX86 Build';
+                platformLogos.macos.style.display = 'block';
             }
         }
 
