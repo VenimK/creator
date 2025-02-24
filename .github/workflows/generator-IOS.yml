@@ -169,7 +169,17 @@ jobs:
         uses: actions/download-artifact@master
         with:
           name: bridge-artifact
-          path: ./flutter
+          path: ./
+
+      - name: Setup bridge files
+        run: |
+          # Ensure bridge files are in the correct location
+          mkdir -p flutter/lib/generated
+          cp bridge_generated.dart flutter/lib/generated/
+          cp bridge_generated.io.dart flutter/lib/generated/
+          cp src/bridge_generated.rs src/
+          ls -la flutter/lib/generated/
+          ls -la src/
 
       - name: Build rustdesk lib
         run: |
