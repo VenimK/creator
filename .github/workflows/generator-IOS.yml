@@ -197,7 +197,7 @@ jobs:
           mv app.ipa ../../../${{ inputs.appname }}.ipa
           
       - name: Upload IPA
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.appname }}.ipa
           path: flutter/${{ inputs.appname }}.ipa
