@@ -122,19 +122,7 @@
         <path d="M166 100 L186 140" stroke="white" stroke-width="10" stroke-linecap="round"/>
         <text x="128" y="200" font-family="Arial" font-size="50" font-weight="bold" text-anchor="middle" fill="white">Android</text>
     </svg>
-    
-    <svg id="iosLogo" class="platform-logo" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <linearGradient id="iosGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#3498db;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#2980b9;stop-opacity:1" />
-            </linearGradient>
-        </defs>
-        <rect width="256" height="256" rx="50" ry="50" fill="url(#iosGradient)"/>
-        <path d="M128 80 C100 120, 156 140, 128 200" fill="none" stroke="white" stroke-width="10" opacity="0.3"/>
-        <text x="128" y="200" font-family="Arial" font-size="50" font-weight="bold" text-anchor="middle" fill="white">iOS</text>
-    </svg>
-
+       
     <div>
         <h2 class="success-text">Build Generated Successfully</h2>
         <div class="download-section">
@@ -154,8 +142,6 @@
                 <a href='/download?filename={{filename}}.dmg&uuid={{uuid}}' class="download-link">Download {{filename}}.dmg</a>
             {% elif platform == 'macos-x86' %}
                 <a href='/download?filename={{filename}}.dmg&uuid={{uuid}}' class="download-link">Download {{filename}}.dmg</a>
-            {% elif platform == 'ios' %}
-                <a href='/download?filename={{filename}}.ipa&uuid={{uuid}}' class="download-link">Download {{filename}}.ipa</a>
             {% else %}
                 <p>Error: No file generated</p>
             {% endif %}
@@ -172,7 +158,7 @@
                 'macos': document.getElementById('macosLogo'),
                 'linux': document.getElementById('linuxLogo'),
                 'android': document.getElementById('androidLogo'),
-                'ios': document.getElementById('iosLogo')
+                'macos-x86': document.getElementById('macosLogo')
             };
             const platformNote = document.getElementById('platformNote');
 
@@ -198,11 +184,6 @@
             } else if (platform === 'android') {
                 document.getElementById('pageTitle').textContent = 'Android Build Generated';
                 platformLogos.android.style.display = 'block';
-                platformNote.textContent = 'Note: You may need to enable "Unknown Sources" in device settings.';
-                platformNote.style.display = 'block';
-            } else if (platform === 'ios') {
-                document.getElementById('pageTitle').textContent = 'iOS Build Generated';
-                platformLogos.ios.style.display = 'block';
                 platformNote.textContent = 'Note: You may need to enable "Unknown Sources" in device settings.';
                 platformNote.style.display = 'block';
             }
