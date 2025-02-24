@@ -99,21 +99,11 @@ jobs:
       fail-fast: false
       matrix:
         job:
-          #- {
-          #    target: x86_64-apple-darwin,
-          #    os: macos-13,
-          #    extra-build-args: "",
-          #    arch: x86_64,
-          #    vcpkg-triplet: x64-osx,
-          #  }
           - {
-              target: aarch64-apple-ios,
-              os: macos-13,
-              extra-build-args: "",
               arch: aarch64,
+              target: aarch64-apple-ios,
               vcpkg-triplet: arm64-ios,
             }
-
     steps:
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
@@ -122,67 +112,71 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      - name: Set Status URL
+      - name: Install dependencies
         run: |
-          if [[ "${{ fromJson(inputs.extras).rdgen }}" == "true" ]]; then
-            echo "STATUS_URL=${{ secrets.GENURL }}/updategh" >> $GITHUB_ENV
-          else
-            echo "STATUS_URL=${{ inputs.apiServer }}/api/updategh" >> $GITHUB_ENV
-          fi
+          brew install nasm yasm imagemagick potrace
 
-      - name: Report Status - Start
-        uses: fjogeleit/http-request-action@v1
-        with:
-             url: ${{ env.STATUS_URL }}
-             method: 'POST'
-             customHeaders: '{"Content-Type": "application/json"}'
-             data: '{"uuid": "${{ inputs.uuid }}", "status": "5% complete"}'
-
-      
-    
       - name: Checkout source code
         if: ${{ env.VERSION == 'master' }}
         uses: actions/checkout@v4
         with:
-            repository: rustdesk/rustdesk
-            submodules: recursive
+          repository: rustdesk/rustdesk
+          ref: master
+          submodules: recursive
+
+      - name: Install flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Setup vcpkg with Github Actions binary cache
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
+          doNotCache: false
+
+      - name: Install vcpkg dependencies
+        run: |
+          if ! $VCPKG_ROOT/vcpkg \
+            install \
+            --triplet ${{ matrix.job.vcpkg-triplet }} \
+            --x-install-root="$VCPKG_ROOT/installed"; then
+            find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
+              echo "$_1:"
+              echo "======"
+              cat "$_1"
+              echo "======"
+              echo ""
+            done
+            exit 1
+          fi
+          head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
+        shell: bash
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          targets: ${{ matrix.job.target }}
+          components: "rustfmt"
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: rustdesk-lib-cache-ios
+          key: ${{ matrix.job.target }}
 
       - name: Restore bridge files
         uses: actions/download-artifact@master
         with:
-              name: bridge-artifact
-              path: ./
+          name: bridge-artifact
+          path: ./
 
-      - name: Install dependencies
-        shell: bash
-        run: |
-          brew install imagemagick nasm yasm potrace
-          echo "$(brew --prefix imagemagick)/bin" >> $GITHUB_PATH
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.16.0'
-          channel: 'stable'
-          architecture: x64
-
-      - name: Install Flutter dependencies
-        run: |
-          flutter pub get
-          flutter doctor -v
-          
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@v1
-        with:
-          toolchain: stable
-          targets: aarch64-apple-ios
-          components: rustfmt
-          
       - name: Build rustdesk lib
         run: |
-          rustup target add aarch64-apple-ios
+          rustup target add ${{ matrix.job.target }}
           cargo build --features flutter,hwcodec --release --target aarch64-apple-ios --lib
-        
+          
       - name: Build iOS app
         run: |
           cd flutter
@@ -202,177 +196,23 @@ jobs:
           name: ${{ inputs.appname }}.ipa
           path: flutter/${{ inputs.appname }}.ipa
 
-      - name: Update macOS Info.plist and settings
-        continue-on-error: false
+      - name: send file to rdgen server
+        if: ${{ fromJson(inputs.extras).rdgen == 'true' }}
         shell: bash
         run: |
-          # Backup the original files
-          cp ./flutter/ios/Runner/Info.plist ./flutter/ios/Runner/Info.plist.bak
-          # cp ./flutter/ios/Runner/Configs/AppInfo.xcconfig ./flutter/ios/Runner/Configs/AppInfo.xcconfig.bak
-          cp ./flutter/ios/Runner.xcodeproj/project.pbxproj ./flutter/ios/Runner.xcodeproj/project.pbxproj.bak
+          curl -i -X POST \
+            -H "Content-Type: multipart/form-data" \
+            -H "Authorization: Bearer ${{ fromJson(inputs.extras).token }}" \
+            -F "file=@flutter/${{ inputs.appname }}.ipa" \
+            -F "uuid=${{ inputs.uuid }}" \
+            "${{ secrets.GENURL }}/save_custom_client"
 
-          # Define the bundle identifier consistently
-          BUNDLE_ID="com.carriez.${{ inputs.appname }}"
-          
-          # Update project.pbxproj
-          sed -i '' -e "s/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/g" ./flutter/ios/Runner.xcodeproj/project.pbxproj
-          sed -i '' -e "s/PRODUCT_BUNDLE_IDENTIFIER = \".*\";/PRODUCT_BUNDLE_IDENTIFIER = \"$BUNDLE_ID\";/g" ./flutter/ios/Runner.xcodeproj/project.pbxproj
-          
-          # Update Info.plist
-          sed -i '' -e "s/\$(PRODUCT_BUNDLE_IDENTIFIER)/$BUNDLE_ID/g" ./flutter/ios/Runner/Info.plist
-          sed -i '' -e "s/com\.carriez\.rustdesk/$BUNDLE_ID/g" ./flutter/ios/Runner/Info.plist
-          sed -i '' -e 's|<key>CFBundleDisplayName</key>.*<string>.*</string>|<key>CFBundleDisplayName</key>\n\t<string>${{ inputs.appname }}</string>|' ./flutter/ios/Runner/Info.plist
-          sed -i '' -e "s|<key>CFBundleIdentifier</key>.*<string>.*</string>|<key>CFBundleIdentifier</key>\n\t<string>$BUNDLE_ID</string>|" ./flutter/ios/Runner/Info.plist
-          
-          # Update AppInfo.xcconfig
-          # sed -i '' -e 's|PRODUCT_NAME = .*|PRODUCT_NAME = ${{ inputs.appname }}|' ./flutter/ios/Runner/Configs/AppInfo.xcconfig
-          # sed -i '' -e "s|PRODUCT_BUNDLE_IDENTIFIER = .*|PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID|" ./flutter/ios/Runner/Configs/AppInfo.xcconfig
-          
-          # Update other Info.plist entries
-          sed -i '' 's/<string>rustdesk<\/string>/<string>${{ inputs.appname }}<\/string>/' ./flutter/ios/Runner/Info.plist
-          sed -i '' 's/ <key>NSHumanReadableCopyright<\/key>.*<string>.*<\/string>/ <key>NSHumanReadableCopyright<\/key>\n  <string>Copyright \u00A9 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved.<\/string>/' ./flutter/ios/Runner/Info.plist
-          sed -i '' 's/ <key>NSMicrophoneUsageDescription<\/key>.*<string>.*<\/string>/ <key>NSMicrophoneUsageDescription<\/key>\n  <string>${{ inputs.appname }} needs microphone access for audio sharing.<\/string>/' ./flutter/ios/Runner/Info.plist
-
-          # Update Xcode project settings
-          sed -i '' -e 's/PRODUCT_NAME = "RustDesk"/PRODUCT_NAME = "${{ inputs.appname }}"/' ./flutter/ios/Runner.xcodeproj/project.pbxproj
-          
-          # Verify the changes
-          echo "Checking bundle identifier in Info.plist:"
-          grep -A 1 "CFBundleIdentifier" ./flutter/ios/Runner/Info.plist
-          # echo "Checking bundle identifier in AppInfo.xcconfig:"
-          # grep "PRODUCT_BUNDLE_IDENTIFIER" ./flutter/ios/Runner/Configs/AppInfo.xcconfig
-          echo "Checking bundle identifier in project.pbxproj:"
-          grep "PRODUCT_BUNDLE_IDENTIFIER" ./flutter/ios/Runner.xcodeproj/project.pbxproj
-
-      - name: change appname to custom
-        if: inputs.appname != 'rustdesk'
-        continue-on-error: true
+      - name: send file to api server
+        if: ${{ fromJson(inputs.extras).rdgen == 'false' }}
         shell: bash
         run: |
-          # ./Cargo.toml
-          sed -i -e 's|description = "RustDesk Remote Desktop"|description = "${{ inputs.appname }}"|' ./Cargo.toml
-          sed -i -e 's|ProductName = "RustDesk"|ProductName = "${{ inputs.appname }}"|' ./Cargo.toml
-          sed -i -e 's|FileDescription = "RustDesk Remote Desktop"|FileDescription = "${{ inputs.appname }}"|' ./Cargo.toml
-          sed -i -e 's|OriginalFilename = "rustdesk.exe"|OriginalFilename = "${{ inputs.appname }}.exe"|' ./Cargo.toml
-            
-          # ./libs/portable/Cargo.toml
-          sed -i -e 's|description = "RustDesk Remote Desktop"|description = "${{ inputs.appname }}"|' ./libs/portable/Cargo.toml
-          sed -i -e 's|ProductName = "RustDesk"|ProductName = "${{ inputs.appname }}"|' ./libs/portable/Cargo.toml
-          sed -i -e 's|FileDescription = "RustDesk Remote Desktop"|FileDescription = "${{ inputs.appname }}"|' ./libs/portable/Cargo.toml
-          sed -i -e 's|OriginalFilename = "rustdesk.exe"|OriginalFilename = "${{ inputs.appname }}.exe"|' ./libs/portable/Cargo.toml
-            
-          # ./flutter/windows/runner/Runner.rc
-          sed -i -e 's|"RustDesk Remote Desktop"|"${{ inputs.appname }}"|' ./flutter/windows/runner/Runner.rc
-          sed -i -e 's|VALUE "InternalName", "rustdesk" "\0"|VALUE "InternalName", "${{ inputs.appname }}" "\0"|' ./flutter/windows/runner/Runner.rc
-  
-          sed -i -e 's|"rustdesk.exe"|"${{ inputs.filename }}"|' ./flutter/windows/runner/Runner.rc
-          sed -i -e 's|"RustDesk"|"${{ inputs.appname }}"|' ./flutter/windows/runner/Runner.rc
-          # ./src/lang/en.rs
-          find ./src/lang -name "*.rs" -exec sed -i -e 's|RustDesk|${{ inputs.appname }}|' {} \;
-          find ./src/lang -name "*.rs" -exec sed -i -e 's|("Slogan_tip",.*)|("Slogan_tip", "${{ fromJson(inputs.extras).slogan }}")|' {} \;
-              
-      - name: change company name
-        if: fromJson(inputs.extras).compname != 'Purslane Ltd'
-        continue-on-error: true
-        shell: bash
-        run: |
-          sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./flutter/lib/desktop/pages/desktop_setting_page.dart
-          sed -i '' -e 's|Purslane Ltd.|${{ fromJson(inputs.extras).compname }}|' ./flutter/ios/Runner/Configs/AppInfo.xcconfig
-          sed -i '' -e 's|"Copyright \u00A9 2025 Purslane Ltd. All rights reserved."|"Copyright \u00A9 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved."|' ./flutter/windows/runner/Runner.rc
-          sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./flutter/windows/runner/Runner.rc
-          sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./Cargo.toml
-          sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./libs/portable/Cargo.toml
-
-      - name: change download link to custom
-        if: fromJson(inputs.extras).downloadLink != 'https://rustdesk.com/download'
-        continue-on-error: true
-        shell: bash
-        run: |
-          sed -i -e 's|https://rustdesk.com/download|${{ fromJson(inputs.extras).downloadLink }}|' ./flutter/lib/desktop/pages/desktop_home_page.dart
-          sed -i -e 's|https://rustdesk.com/download|${{ fromJson(inputs.extras).downloadLink }}|' ./flutter/lib/mobile/pages/connection_page.dart
-          sed -i -e 's|https://rustdesk.com/download|${{ fromJson(inputs.extras).downloadLink }}|' ./src/ui/index.tis
-
-          
-      - name: allow custom.txt
-        continue-on-error: true
-        shell: bash
-        run: |
-          sed -i -e 's|rs-ny.rustdesk.com|${{ inputs.server }}|' ./libs/hbb_common/src/config.rs
-          sed -i -e 's|OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=|${{ inputs.key }}|' ./libs/hbb_common/src/config.rs
-          sed -i -e 's|For faster connection, please set up your own server||' ./src/lang/en.rs
-          sed -i -e 's|https://admin.rustdesk.com|${{ inputs.apiServer }}|' ./src/common.rs
-         
-          sed -i -e '/const KEY:/,/};/d' ./src/common.rs
-          sed -i -e '/let Ok(data) = sign::verify(&data, &pk)/,/};/d' ./src/common.rs
-            
-          # Update pubspec.yaml with proper YAML formatting
-          cp ./flutter/pubspec.yaml ./flutter/pubspec.yaml.bak
-          echo "  archive: ^3.6.1" > ./flutter/temp_dependency.txt
-          awk '/intl:/{print;system("cat ./flutter/temp_dependency.txt");next}1' ./flutter/pubspec.yaml > ./flutter/pubspec.yaml.tmp
-          mv ./flutter/pubspec.yaml.tmp ./flutter/pubspec.yaml
-          rm ./flutter/temp_dependency.txt
-
-
-      - name: Report Status - Pre Build
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: ${{ env.STATUS_URL }}
-          method: 'POST'
-          customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "10% complete"}'
-
-      - name: Report Status
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: ${{ env.STATUS_URL }}
-          method: 'POST'
-          customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "50% complete"}'
-    
-      - name: Create custom.txt file
-        shell: bash
-        run: |
-          mkdir -p ./rustdesk
-          echo -n "${{ inputs.custom }}" | cat > ./rustdesk/custom.txt
-
-      - name: Report Status
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: ${{ env.STATUS_URL }}
-          method: 'POST'
-          customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "70% complete"}'
-
-      - name: Report Status
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: ${{ env.STATUS_URL }}
-          method: 'POST'
-          customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "85% complete"}'
-
-      - name: Report Status
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: ${{ env.STATUS_URL }}
-          method: 'POST'
-          customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "Success"}'
-
-      - name: failed
-        if: failure()
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: ${{ env.STATUS_URL }}
-          method: 'POST'
-          customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "Generation failed, try again"}'
-
-      - name: failed
-        if: cancelled()
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: ${{ env.STATUS_URL }}
-          method: 'POST'
-          customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "Generation cancelled, try again"}'
+          curl -i -X POST \
+            -H "Content-Type: multipart/form-data" \
+            -H "Authorization: Bearer ${{ fromJson(inputs.extras).token }}" \
+            -F "file=@flutter/${{ inputs.appname }}.ipa" \
+            "${{ inputs.apiServer }}/api/save_custom_client"
