@@ -169,14 +169,13 @@ jobs:
         uses: actions/download-artifact@master
         with:
           name: bridge-artifact
-          path: ./
+          path: ./flutter
 
       - name: Build rustdesk lib
         run: |
-          cd rustdesk
           rustup target add ${{ matrix.job.target }}
           cargo build --features flutter,hwcodec --release --target aarch64-apple-ios --lib
-          cd ..
+          
 
       - name: Build iOS app
         run: |
