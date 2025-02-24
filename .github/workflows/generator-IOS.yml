@@ -143,13 +143,10 @@ jobs:
 
       - name: Install vcpkg dependencies
         run: |
-          if ! $VCPKG_ROOT/vcpkg \
-            install \
-            ffmpeg[core] \
-            libvpx \
-            opus \
+          $VCPKG_ROOT/vcpkg install \
             --triplet ${{ matrix.job.vcpkg-triplet }} \
-            --x-install-root="$VCPKG_ROOT/installed"; then
+            --x-install-root="$VCPKG_ROOT/installed"
+          if [ $? -ne 0 ]; then
             find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
               echo "$_1:"
               echo "======"
@@ -159,7 +156,6 @@ jobs:
             done
             exit 1
           fi
-          head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
         shell: bash
 
       - name: Install Rust toolchain
