@@ -133,10 +133,10 @@ jobs:
       - name: Report Status - Start
         uses: fjogeleit/http-request-action@v1
         with:
-          url: ${{ env.STATUS_URL }}
-          method: 'POST'
-          customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"uuid": "${{ inputs.uuid }}", "status": "5% complete"}'
+             url: ${{ env.STATUS_URL }}
+             method: 'POST'
+             customHeaders: '{"Content-Type": "application/json"}'
+             data: '{"uuid": "${{ inputs.uuid }}", "status": "5% complete"}'
 
       - name: Checkout source code
         if: ${{ env.VERSION != 'master' }}
