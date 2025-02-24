@@ -123,12 +123,7 @@ jobs:
           ref: ${{ env.VERSION != 'master' && format('refs/tags/{0}', env.VERSION) || 'master' }}
           submodules: recursive
 
-      - name: Restore bridge files
-        uses: actions/download-artifact@master
-        with:
-          name: bridge-artifact
-          path: ./
-
+      
       - name: Install flutter
         uses: subosito/flutter-action@v2
         with:
@@ -169,6 +164,12 @@ jobs:
         with:
           prefix-key: rustdesk-lib-cache-ios
           key: ${{ matrix.job.target }}
+
+      - name: Restore bridge files
+        uses: actions/download-artifact@master
+        with:
+          name: bridge-artifact
+          path: ./
 
       - name: Build rustdesk lib
         run: |
