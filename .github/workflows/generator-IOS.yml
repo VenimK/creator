@@ -117,12 +117,17 @@ jobs:
           brew install nasm yasm imagemagick potrace
 
       - name: Checkout source code
-        if: ${{ env.VERSION == 'master' }}
         uses: actions/checkout@v4
         with:
           repository: rustdesk/rustdesk
-          ref: master
+          ref: ${{ env.VERSION != 'master' && format('refs/tags/{0}', env.VERSION) || 'master' }}
           submodules: recursive
+
+      - name: Restore bridge files
+        uses: actions/download-artifact@master
+        with:
+          name: bridge-artifact
+          path: ./
 
       - name: Install flutter
         uses: subosito/flutter-action@v2
@@ -169,17 +174,13 @@ jobs:
           prefix-key: rustdesk-lib-cache-ios
           key: ${{ matrix.job.target }}
 
-      - name: Restore bridge files
-        uses: actions/download-artifact@master
-        with:
-          name: bridge-artifact
-          path: ./
-
       - name: Build rustdesk lib
         run: |
+          cd rustdesk
           rustup target add ${{ matrix.job.target }}
           cargo build --features flutter,hwcodec --release --target aarch64-apple-ios --lib
-          
+          cd ..
+
       - name: Build iOS app
         run: |
           cd flutter
