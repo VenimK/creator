@@ -140,6 +140,9 @@ jobs:
         run: |
           if ! $VCPKG_ROOT/vcpkg \
             install \
+            ffmpeg[core] \
+            libvpx \
+            opus \
             --triplet ${{ matrix.job.vcpkg-triplet }} \
             --x-install-root="$VCPKG_ROOT/installed"; then
             find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
