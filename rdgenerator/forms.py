@@ -90,7 +90,7 @@ class GenerateForm(forms.Form):
     statussort = forms.BooleanField(initial=False, required=False)
     removeNewVersionNotif = forms.BooleanField(initial=False, required=False)
 
-     def clean_iconfile(self):
+    def clean_iconfile(self):
         print("checking icon")
         image = self.cleaned_data['iconfile']
         if image:
