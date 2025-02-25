@@ -186,6 +186,11 @@
                 platformLogos.android.style.display = 'block';
                 platformNote.textContent = 'Note: You may need to enable "Unknown Sources" in device settings.';
                 platformNote.style.display = 'block';
+            } else if (platform === 'macos-x86') {
+                document.getElementById('pageTitle').textContent = 'MacOSX86 Build Generated';
+                platformLogos.macos.style.display = 'block';
+                platformNote.textContent = 'Note: For macOSX86, you may need to adjust security settings to run the application.';
+                platformNote.style.display = 'block';
             }
         }
 
