@@ -67,6 +67,12 @@ After configuration, you'll receive:
 - APK file: `YourAppName-{version}-android.apk`
 - Split APKs for different architectures (arm64-v8a, armeabi-v7a, x86_64)
 
+### Linux
+- PKG file: `YourAppName-{version}-linux.pkg`
+- DEB file: `YourAppName-{version}-linux.deb`
+- RPM file: `YourAppName-{version}-linux.rpm`
+- SUSE RPM file: `YourAppName-{version}-linux-suse.rpm`
+
 ## Important Notes
 
 1. **Build Time**: Depending on the platform, builds can take 15-30 minutes
