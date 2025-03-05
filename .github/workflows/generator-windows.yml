@@ -258,19 +258,10 @@ jobs:
       - name: allow custom.txt
         continue-on-error: true
         run: |
-          $commonRs = Get-Content ./src/common.rs
-          $startLine = $commonRs | Select-String -Pattern "const KEY: &str =" | Select-Object -ExpandProperty LineNumber
-          $endLine = $startLine + 8
-          $commonRs = $commonRs[0..($startLine-2)] + $commonRs[$endLine..$commonRs.Length]
-          $commonRs | Set-Content ./src/common.rs
-
-          $content = Get-Content ./flutter/lib/desktop/pages/connection_page.dart
-          $content = $content -replace 'if \(!isIncomingOnly\) setupServerWidget\(\),', '// if (!isIncomingOnly) setupServerWidget(),'
-          $content | Set-Content ./flutter/lib/desktop/pages/connection_page.dart
-
-          $content = Get-Content ./src/bridge_generated.rs
-          $content = $content -replace 'main_get_recent_peers', 'main_load_recent_peers'
-          $content | Set-Content ./src/bridge_generated.rs
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/allowCustom.diff -OutFile allowCustom.diff
+          git apply allowCustom.diff
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/removeSetupServerTip.diff -OutFile removeSetupServerTip.diff
+          git apply removeSetupServerTip.diff
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v1
