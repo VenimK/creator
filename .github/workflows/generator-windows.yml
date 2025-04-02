@@ -465,13 +465,37 @@ jobs:
 
       - name: Build rustdesk
         run: |
+          # Windows: build RustDesk
+          python3 .\build.py --portable --hwcodec --flutter --vram --skip-portable-pack
+          mv ./flutter/build/windows/x64/runner/Release ./rustdesk
+
           Invoke-WebRequest -Uri https://github.com/rustdesk-org/rdev/releases/download/usbmmidd_v2/usbmmidd_v2.zip -OutFile usbmmidd_v2.zip
           Expand-Archive usbmmidd_v2.zip -DestinationPath . -Force
           python3 .\build.py --portable --hwcodec --flutter --vram --skip-portable-pack
           Remove-Item -Path usbmmidd_v2\Win32 -Recurse
           Remove-Item -Path "usbmmidd_v2\deviceinstaller64.exe", "usbmmidd_v2\deviceinstaller.exe", "usbmmidd_v2\usbmmidd.bat"
           mv ./flutter/build/windows/x64/runner/Release ./rustdesk
-          mv -Force .\usbmmidd_v2 ./rustdesk   
+          mv -Force .\usbmmidd_v2 ./rustdesk
+
+      - name: Download printer driver
+        shell: pwsh
+        run: |
+          try {
+            $printerDriverUrl = "https://github.com/rustdesk/hbb_common/releases/download/driver/rustdesk_printer_driver_v4.zip"
+            Invoke-WebRequest -Uri $printerDriverUrl -OutFile rustdesk_printer_driver_v4.zip
+            $checksum_driver = (Select-String -Path sha256sums -Pattern '^([a-fA-F0-9]{64}) \*rustdesk_printer_driver_v4\.zip$').Matches.Groups[1].Value
+            $downloadsum_driver = Get-FileHash -Path rustdesk_printer_driver_v4.zip -Algorithm SHA256
+            if ($checksum_driver -eq $downloadsum_driver.Hash) {
+                Write-Output "rustdesk_printer_driver_v4, checksums match, extract the file."
+                Expand-Archive rustdesk_printer_driver_v4.zip -DestinationPath .
+                mkdir ./rustdesk/drivers
+                mv -Force .\rustdesk_printer_driver_v4 ./rustdesk/drivers/RustDeskPrinterDriver
+            } else {
+                Write-Output "rustdesk_printer_driver_v4, checksums do not match, ignore the file."
+            }
+          } catch {
+            Write-Host "Ingore the printer driver error."
+          }
 
       - name: icon stuff
         if: ${{ inputs.iconlink != 'false' }}
