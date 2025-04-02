@@ -336,21 +336,14 @@ jobs:
         env:
           VCPKG_DEFAULT_HOST_TRIPLET: ${{ matrix.job.vcpkg-triplet }}
         run: |
-          if ! $VCPKG_ROOT/vcpkg \
-            install \
-            --triplet ${{ matrix.job.vcpkg-triplet }} \
-            --x-install-root="$VCPKG_ROOT/installed"; then
-            find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
-              echo "$_1:"
-              echo "======"
-              cat "$_1"
-              echo "======"
-              echo ""
-            done
-            exit 1
-          fi
-          head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
-        shell: bash
+          vcpkg install --triplet x64-windows-static --clean-after-build `
+            aom:x64-windows-static `
+            ffmpeg[amf,core,nvcodec]:x64-windows-static `
+            ffnvcodec:x64-windows-static `
+            libjpeg-turbo:x64-windows-static `
+            libvpx:x64-windows-static `
+            libyuv:x64-windows-static `
+            opus:x64-windows-static
 
       - name: icon stuff
         if: ${{ inputs.iconlink != 'false' }}
