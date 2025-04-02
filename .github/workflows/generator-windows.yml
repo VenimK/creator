@@ -335,8 +335,10 @@ jobs:
       - name: Install vcpkg dependencies
         env:
           VCPKG_DEFAULT_HOST_TRIPLET: ${{ matrix.job.vcpkg-triplet }}
+        shell: pwsh
         run: |
-          vcpkg install --triplet x64-windows-static --clean-after-build
+          $ErrorActionPreference = 'Continue'
+          vcpkg install --no-manifest --triplet x64-windows-static --clean-after-build aom:x64-windows-static ffmpeg[amf,core,nvcodec]:x64-windows-static ffnvcodec:x64-windows-static libjpeg-turbo:x64-windows-static libvpx:x64-windows-static libyuv:x64-windows-static opus:x64-windows-static
 
       - name: icon stuff
         if: ${{ inputs.iconlink != 'false' }}
