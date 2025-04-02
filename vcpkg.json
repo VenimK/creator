@@ -1,0 +1,35 @@
+{
+  "name": "rustdesk",
+  "version-string": "1.0.0",
+  "dependencies": [
+    {
+      "name": "aom",
+      "platform": "windows"
+    },
+    {
+      "name": "ffmpeg",
+      "features": ["amf", "nvcodec"],
+      "platform": "windows"
+    },
+    {
+      "name": "ffnvcodec",
+      "platform": "windows"
+    },
+    {
+      "name": "libjpeg-turbo",
+      "platform": "windows"
+    },
+    {
+      "name": "libvpx",
+      "platform": "windows"
+    },
+    {
+      "name": "libyuv",
+      "platform": "windows"
+    },
+    {
+      "name": "opus",
+      "platform": "windows"
+    }
+  ]
+}
