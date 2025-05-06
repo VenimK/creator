@@ -545,6 +545,7 @@ jobs:
             done
             exit 1
           fi
+          head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-x64-osx-rel-out.log" || true
 
       - name: Report Status
         uses: fjogeleit/http-request-action@v1
