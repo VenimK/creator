@@ -68,8 +68,9 @@ env:
   FLUTTER_ELINUX_VERSION: "3.16.9"
   TAG_NAME: "${{ inputs.upload-tag }}"
   VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+  VCPKG_TOOL_MESON_VERSION: "1.6.1"
   # vcpkg version: 2024.07.12 (updated to latest)
-  VCPKG_COMMIT_ID: "4a600e9fba508bd1a97c5a34e2e42427d3ae3d77"
+  VCPKG_COMMIT_ID: "6f29f12e82a8293156836ad81cc9bf5af41fe836"
   VERSION: "${{ fromJson(inputs.extras).version }}"
   NDK_VERSION: "r27c"
   #signing keys env variable checks
