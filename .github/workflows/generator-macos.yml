@@ -110,7 +110,7 @@ jobs:
               target: aarch64-apple-darwin,
               os: macos-latest,
               extra-build-args: "--screencapturekit",
-              arch: arm64,
+              arch: aarch64,
               vcpkg-triplet: arm64-osx,
             }
 
