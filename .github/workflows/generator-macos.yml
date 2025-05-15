@@ -533,11 +533,53 @@ jobs:
             vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
             doNotCache: false
   
+      - name: Setup overlay ports for pkgconf
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/overlay-ports/pkgconf
+          cat > $GITHUB_WORKSPACE/overlay-ports/pkgconf/vcpkg.json << 'EOF'
+          {
+            "name": "pkgconf",
+            "version": "1.9.5",
+            "port-version": 0,
+            "description": "pkgconf is a program which helps to configure compiler and linker flags for development libraries."
+          }
+          EOF
+          
+          cat > $GITHUB_WORKSPACE/overlay-ports/pkgconf/portfile.cmake << 'EOF'
+          vcpkg_from_github(
+              OUT_SOURCE_PATH SOURCE_PATH
+              REPO pkgconf/pkgconf
+              REF pkgconf-1.9.5
+              SHA512 4f440c0a7a0a0d8cdc2c8d3ee9e33804d4509b6e0c6bb50a3b3c9d5535a1e15b6d5e5f7c5b0c9f0b5d2d0f8edd5a8b70b0dceea8c964c29c8a1c7c83bf4b9b72
+              HEAD_REF master
+          )
+
+          vcpkg_configure_meson(
+              SOURCE_PATH "${SOURCE_PATH}"
+              OPTIONS
+                  -Dtests=disabled
+          )
+          vcpkg_install_meson()
+          vcpkg_fixup_pkgconfig()
+
+          file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
+          file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
+
+          vcpkg_copy_pdbs()
+          vcpkg_copy_tool_dependencies(${CURRENT_PACKAGES_DIR}/bin)
+          if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
+              file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/bin" "${CURRENT_PACKAGES_DIR}/debug/bin")
+          endif()
+
+          file(INSTALL "${SOURCE_PATH}/COPYING" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
+          EOF
+  
       - name: Install vcpkg dependencies
         run: |
           if ! $VCPKG_ROOT/vcpkg \
             install \
-            --x-install-root="$VCPKG_ROOT/installed"; then
+            --x-install-root="$VCPKG_ROOT/installed" \
+            --overlay-ports=$GITHUB_WORKSPACE/overlay-ports; then
             find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
               echo "$_1:"
               echo "======"
