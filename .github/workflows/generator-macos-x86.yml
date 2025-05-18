@@ -68,8 +68,6 @@ env:
   FLUTTER_ELINUX_VERSION: "3.16.9"
   TAG_NAME: "${{ inputs.upload-tag }}"
   VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-  VCPKG_TOOL_MESON_VERSION: "1.6.1"
-  VCPKG_OVERLAY_PORTS: "${{ github.workspace }}/vcpkg-overlays/ports"
   # vcpkg version: 2024.07.12 (updated to latest)
   VCPKG_COMMIT_ID: "6f29f12e82a8293156836ad81cc9bf5af41fe836"
   VERSION: "${{ fromJson(inputs.extras).version }}"
@@ -148,127 +146,11 @@ jobs:
             repository: rustdesk/rustdesk
             submodules: recursive
 
-      - name: Restore bridge files
-        uses: actions/download-artifact@master
-        with:
-              name: bridge-artifact
-              path: ./
-
       - name: Install imagemagick and potrace and nasm and and
         shell: bash
         run: |
           brew install imagemagick potrace nasm cmake gcc wget ninja
           echo "$(brew --prefix imagemagick)/bin" >> $GITHUB_PATH
-          
-      - name: Setup vcpkg overlay for Meson 1.6.1
-        shell: bash
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/vcpkg-overlays/ports/vcpkg-tool-meson
-          
-          # Create vcpkg.json for the port
-          cat > $GITHUB_WORKSPACE/vcpkg-overlays/ports/vcpkg-tool-meson/vcpkg.json << 'EOF'
-          {
-            "name": "vcpkg-tool-meson",
-            "version": "1.6.1",
-            "port-version": 1,
-            "description": "Meson build system",
-            "homepage": "https://github.com/mesonbuild/meson",
-            "license": "Apache-2.0"
-          }
-          EOF
-          
-          # Create portfile.cmake with correct hash for Meson 1.6.1
-          cat > $GITHUB_WORKSPACE/vcpkg-overlays/ports/vcpkg-tool-meson/portfile.cmake << 'EOF'
-          set(VCPKG_POLICY_EMPTY_PACKAGE enabled)
-          set(MESON_VERSION 1.6.1)
-          
-          file(MAKE_DIRECTORY ${CURRENT_PACKAGES_DIR}/share/${PORT})
-          
-          # Copy patch files if they exist
-          foreach(PATCH_FILE IN ITEMS
-              "meson-intl.patch"
-              "adjust-python-dep.patch"
-              "adjust-args.patch"
-              "remove-freebsd-pcfile-specialization.patch"
-              "meson-1.4-llvm-18.diff"
-          )
-              if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/${PATCH_FILE}")
-                  file(COPY "${CMAKE_CURRENT_LIST_DIR}/${PATCH_FILE}" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
-              endif()
-          endforeach()
-          
-          file(WRITE ${CURRENT_PACKAGES_DIR}/share/${PORT}/copyright "Meson is licensed under the Apache 2.0 license.")
-          
-          # Bypass SHA512 hash check for Meson 1.6.1
-          set(MESON_HASH 0)
-          
-          set(FILENAME meson-${MESON_VERSION}.tar.gz)
-          vcpkg_download_distfile(
-              ARCHIVE
-              URLS "https://github.com/mesonbuild/meson/releases/download/${MESON_VERSION}/${FILENAME}"
-              FILENAME "${FILENAME}"
-              SHA512 "${MESON_HASH}"
-          )
-          
-          # Extract the archive
-          vcpkg_extract_source_archive(
-              SOURCE_PATH
-              ARCHIVE "${ARCHIVE}"
-          )
-          
-          # Apply patches if they exist
-          foreach(PATCH_FILE IN ITEMS
-              "${CURRENT_PACKAGES_DIR}/share/${PORT}/meson-intl.patch"
-              "${CURRENT_PACKAGES_DIR}/share/${PORT}/adjust-python-dep.patch"
-              "${CURRENT_PACKAGES_DIR}/share/${PORT}/adjust-args.patch"
-              "${CURRENT_PACKAGES_DIR}/share/${PORT}/remove-freebsd-pcfile-specialization.patch"
-              "${CURRENT_PACKAGES_DIR}/share/${PORT}/meson-1.4-llvm-18.diff"
-          )
-              if(EXISTS "${PATCH_FILE}")
-                  vcpkg_apply_patches(
-                      SOURCE_PATH "${SOURCE_PATH}"
-                      PATCHES "${PATCH_FILE}"
-                  )
-              endif()
-          endforeach()
-          
-          # Find Python
-          find_program(PYTHON3 NAMES python3 python)
-          if(NOT PYTHON3)
-              message(FATAL_ERROR "Python 3 not found")
-          endif()
-          
-          # Copy Meson to the output directory
-          file(COPY "${SOURCE_PATH}/" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}/meson")
-          
-          # Create a wrapper script
-          file(WRITE "${CURRENT_PACKAGES_DIR}/share/${PORT}/meson.py"
-          "#!/usr/bin/env python3
-          import os
-          import sys
-          meson_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'meson')
-          sys.path.insert(0, meson_dir)
-          from mesonbuild import mesonmain
-          sys.exit(mesonmain.main())
-          ")
-          
-          message(STATUS "Using meson: ${PYTHON3} ${CURRENT_PACKAGES_DIR}/share/${PORT}/meson.py")
-          EOF
-          
-          # Copy patch files from the original vcpkg-tool-meson port if available
-          if [ -d "$VCPKG_ROOT/ports/vcpkg-tool-meson" ]; then
-            echo "Copying patch files from original vcpkg-tool-meson port"
-            cp $VCPKG_ROOT/ports/vcpkg-tool-meson/*.patch $GITHUB_WORKSPACE/vcpkg-overlays/ports/vcpkg-tool-meson/ || echo "No patch files found"
-          else
-            echo "Creating empty patch files"
-            touch $GITHUB_WORKSPACE/vcpkg-overlays/ports/vcpkg-tool-meson/meson-intl.patch
-            touch $GITHUB_WORKSPACE/vcpkg-overlays/ports/vcpkg-tool-meson/adjust-python-dep.patch
-            touch $GITHUB_WORKSPACE/vcpkg-overlays/ports/vcpkg-tool-meson/adjust-args.patch
-            touch $GITHUB_WORKSPACE/vcpkg-overlays/ports/vcpkg-tool-meson/remove-freebsd-pcfile-specialization.patch
-            touch $GITHUB_WORKSPACE/vcpkg-overlays/ports/vcpkg-tool-meson/meson-1.4-llvm-18.diff
-          fi
-          
-          echo "Overlay port for Meson 1.6.1 created at $GITHUB_WORKSPACE/vcpkg-overlays/ports/vcpkg-tool-meson"
 
       - name: Update macOS Info.plist and settings
         continue-on-error: false
@@ -619,12 +501,13 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "20% complete"}'
-  
-        
-      - uses: Swatinem/rust-cache@v2
-        with:
-          prefix-key: ${{ matrix.job.os }}
 
+      - name: Restore bridge files
+        uses: actions/download-artifact@master
+        with:
+              name: bridge-artifact
+              path: ./
+  
       - name: Report Status
         uses: fjogeleit/http-request-action@v1
         with:
@@ -633,32 +516,32 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "30% complete"}'
 
-      - name: Create MacOS directory structure
-        run: |
-          mkdir -p ./build/macos/Build/Products/Release/RustDesk.app/Contents/MacOS
-
       - name: Setup vcpkg with Github Actions binary cache
         uses: lukka/run-vcpkg@v11
         with:
             vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
             doNotCache: false
-  
+
       - name: Install vcpkg dependencies
         run: |
           if ! $VCPKG_ROOT/vcpkg \
             install \
             --x-install-root="$VCPKG_ROOT/installed"; then
             find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
-              echo "$_1:"
-              echo "======"
-              cat "$_1"
-              echo "======"
-              echo ""
-            done
-            exit 1
-          fi
-          head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-x64-osx-rel-out.log" || true
+                  echo "$_1:"
+                  echo "======"
+                  cat "$_1"
+                  echo "======"
+                  echo ""
+                done
+                exit 1
+              fi
+              head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-x64-osx-rel-out.log" || true
 
+      - name: Create MacOS directory structure
+        run: |
+          mkdir -p ./build/macos/Build/Products/Release/RustDesk.app/Contents/MacOS
+  
       - name: Report Status
         uses: fjogeleit/http-request-action@v1
         with:
