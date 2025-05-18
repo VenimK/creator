@@ -538,7 +538,6 @@ jobs:
           if ! $VCPKG_ROOT/vcpkg \
             install \
             --x-install-root="$VCPKG_ROOT/installed" \
-            --overlay-ports=$GITHUB_WORKSPACE/overlay-ports; then
             find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
               echo "$_1:"
               echo "======"
