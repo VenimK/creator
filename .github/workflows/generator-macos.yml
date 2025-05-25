@@ -55,16 +55,17 @@ on:
         type: string
 
 env:
-  SCITER_RUST_VERSION: "1.75" # https://github.com/rustdesk/rustdesk/discussions/7503, also 1.78 has ABI change which causes our sciter version not working, https://blog.rust-lang.org/2024/03/30/i128-layout-update.html
-  RUST_VERSION: "1.75" # sciter failed on m1 with 1.78 because of https://blog.rust-lang.org/2024/03/30/i128-layout-update.html
-  MAC_RUST_VERSION: "1.81" 
+  # Default versions for RustDesk >= 1.4.0
+  SCITER_RUST_VERSION: "1.75"  # https://github.com/rustdesk/rustdesk/discussions/7503
+  RUST_VERSION: "1.75"  # sciter failed on m1 with 1.78
+  MAC_RUST_VERSION: "1.81"
   CARGO_NDK_VERSION: "3.1.2"
   SCITER_ARMV7_CMAKE_VERSION: "3.29.7"
   SCITER_NASM_DEBVERSION: "2.14-1"
   LLVM_VERSION: "15.0.6"
   FLUTTER_VERSION: "3.24.5"
-  ANDROID_FLUTTER_VERSION: "3.24.5" # >= 3.16 is very slow on my android phone, but work well on most of others. We may switch to new flutter after changing to texture rendering (I believe it can solve my problem).
-  FLUTTER_RUST_BRIDGE_VERSION: "1.80.1"  # for arm64 linux because official Dart SDK does not work
+  ANDROID_FLUTTER_VERSION: "3.24.5"
+  FLUTTER_RUST_BRIDGE_VERSION: "1.80.1"
   FLUTTER_ELINUX_VERSION: "3.16.9"
   TAG_NAME: "${{ inputs.upload-tag }}"
   VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
@@ -284,7 +285,7 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "10% complete"}'
 
-      - name: Install flutter
+      - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: "stable"
@@ -305,6 +306,27 @@ jobs:
           sed -i -e 's/_setFramesEnabledState(false);/\/\/_setFramesEnabledState(false);/g' ../packages/flutter/lib/src/scheduler/binding.dart
           grep -n '_setFramesEnabledState(false);' ../packages/flutter/lib/src/scheduler/binding.dart
         
+      - name: Set versions based on RustDesk version
+        shell: bash
+        run: |
+          if [[ "${{ env.VERSION }}" == "1.3.8" || "${{ env.VERSION }}" == "1.3.9" ]]; then
+            echo "Using versions for RustDesk 1.3.x"
+            echo "SCITER_RUST_VERSION=1.67" >> $GITHUB_ENV
+            echo "RUST_VERSION=1.67" >> $GITHUB_ENV
+            echo "MAC_RUST_VERSION=1.67" >> $GITHUB_ENV
+            echo "FLUTTER_VERSION=3.16.9" >> $GITHUB_ENV
+            echo "ANDROID_FLUTTER_VERSION=3.16.9" >> $GITHUB_ENV
+            echo "FLUTTER_RUST_BRIDGE_VERSION=1.75.0" >> $GITHUB_ENV
+          else
+            echo "Using default versions for RustDesk >= 1.4.0"
+            echo "SCITER_RUST_VERSION=1.75" >> $GITHUB_ENV
+            echo "RUST_VERSION=1.75" >> $GITHUB_ENV
+            echo "MAC_RUST_VERSION=1.81" >> $GITHUB_ENV
+            echo "FLUTTER_VERSION=3.24.5" >> $GITHUB_ENV
+            echo "ANDROID_FLUTTER_VERSION=3.24.5" >> $GITHUB_ENV
+            echo "FLUTTER_RUST_BRIDGE_VERSION=1.80.1" >> $GITHUB_ENV
+          fi
+          
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@v1
         with:
