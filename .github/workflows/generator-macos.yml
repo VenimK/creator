@@ -518,23 +518,30 @@ jobs:
         continue-on-error: true
         if: fromJson(inputs.extras).statussort == 'true'
         run: |
-          # Download the appropriate statussort patch based on RustDesk version
-          if [[ "${{ env.VERSION }}" == "1.3.8" || "${{ env.VERSION }}" == "1.3.9" ]]; then
-            # For RustDesk 1.3.8/1.3.9, use a version-specific patch
-            wget https://raw.githubusercontent.com/rustdesk/rustdesk/refs/tags/${{ env.VERSION }}/flutter/lib/common/widgets/peers_view.dart -O peers_view_original.dart
-            # Create a modified version with status sort enabled
-            sed -i '' 's/\/\/ static const String status = .*/static const String status = "Status";/' peers_view_original.dart
-            sed -i '' 's/\/\/ PeerSortType.status/PeerSortType.status/' peers_view_original.dart
-            sed -i '' 's/\/\/ case PeerSortType.status:/case PeerSortType.status:/' peers_view_original.dart
-            sed -i '' 's/\/\/ \s*peers\.sort((p1, p2) => p1\.online ? -1 : 1);/          peers.sort((p1, p2) => p1.online ? -1 : 1);/' peers_view_original.dart
-            sed -i '' 's/\/\/ \s*break;/          break;/' peers_view_original.dart
-            mv peers_view_original.dart flutter/lib/common/widgets/peers_view.dart
-          else
-            # For other versions, use the standard patch
-            wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/statussort.diff
-            if [[ "${{ fromJson(inputs.extras).statussort }}" == "true" ]]; then
-              git apply statussort.diff || true
+          # For all versions, try to apply the standard patch first
+          wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/statussort.diff
+          
+          # Try to apply the patch, if it fails, use sed to modify the file directly
+          if ! git apply statussort.diff 2>/dev/null; then
+            echo "Patch application failed, trying direct file modification..."
+            FILE_PATH=$(find . -name "peers_view.dart" | grep -v "build" | head -1)
+            if [ -n "$FILE_PATH" ]; then
+              echo "Found peers_view.dart at: $FILE_PATH"
+              # Make a backup of the original file
+              cp "$FILE_PATH" "${FILE_PATH}.bak"
+              # Apply changes using sed
+              sed -i '' 's/\/\/ static const String status = .*/static const String status = "Status";/' "$FILE_PATH"
+              sed -i '' 's/\/\/ PeerSortType.status/PeerSortType.status/' "$FILE_PATH"
+              sed -i '' 's/\/\/ case PeerSortType.status:/case PeerSortType.status:/' "$FILE_PATH"
+              sed -i '' 's/\/\/ \s*peers\.sort((p1, p2) => p1\.online ? -1 : 1);/          peers.sort((p1, p2) => p1.online ? -1 : 1);/' "$FILE_PATH"
+              sed -i '' 's/\/\/ \s*break;/          break;/' "$FILE_PATH"
+              echo "Successfully modified $FILE_PATH"
+            else
+              echo "Error: Could not find peers_view.dart in the repository"
+              exit 1
             fi
+          else
+            echo "Successfully applied statussort.diff"
           fi
 
       - name: removeNewVersionNotif
