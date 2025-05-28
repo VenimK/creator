@@ -11,8 +11,8 @@ class GenerateForm(forms.Form):
         ('macos-x86','macOS (x86)')
     ], initial='macos')
     version = forms.ChoiceField(
-        choices=[('master','nightly'),('1.3.9','1.3.9'),('1.3.8','1.3.8'),('1.3.7','1.3.7'),('1.3.6','1.3.6'),('1.3.5','1.3.5'),('1.3.4','1.3.4'),('1.3.3','1.3.3')], 
-        initial='1.3.8',
+        choices=[('master','nightly'),('1.4.0','1.4.0'),,('1.3.9','1.3.9'),('1.3.8','1.3.8'),('1.3.7','1.3.7'),('1.3.6','1.3.6'),('1.3.5','1.3.5'),('1.3.4','1.3.4'),('1.3.3','1.3.3')], 
+        initial='1.4.0',
         help_text="'nightly' is the development version (nightly build) your build will fail most of the time"
     )
     delayFix = forms.BooleanField(initial=True, required=False)
