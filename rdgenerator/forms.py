@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.safestring import mark_safe
 from PIL import Image
 
 class GenerateForm(forms.Form):
@@ -13,7 +14,7 @@ class GenerateForm(forms.Form):
     version = forms.ChoiceField(
         choices=[('master','nightly'),('1.4.0','1.4.0'),('1.3.9','1.3.9'),('1.3.8','1.3.8'),('1.3.7','1.3.7'),('1.3.6','1.3.6'),('1.3.5','1.3.5'),('1.3.4','1.3.4'),('1.3.3','1.3.3')], 
         initial='1.4.0',
-        help_text="'nightly' is the development version (nightly build) your build will fail most of the time"
+        help_text=mark_safe("If a build fails, let me know. Start an issue on GitHub: <a href='https://github.com/VenimK/creator/issues' style='color: #007bff; font-weight: bold; text-decoration: underline;'>Click here to report an issue</a>")
     )
     delayFix = forms.BooleanField(initial=True, required=False)
 
