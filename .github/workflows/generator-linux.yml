@@ -793,7 +793,8 @@ build-flatpak:
         shell: bash
         run: |
           curl -i -X POST -H "Content-Type: multipart/form-data" -H "Authorization: Bearer ${{ fromJson(inputs.extras).token }}" -F "file=@./flatpak/${{ inputs.filename }}-${{ matrix.job.arch }}.flatpak" ${{ inputs.apiServer }}/api/save_custom_client
-  deploy:
+
+deploy:
     needs: [build-rustdesk-linux,build-flatpak,build-appimage]
     runs-on: ubuntu-latest
     steps:
