@@ -298,8 +298,14 @@ jobs:
       - name: Patch flutter
         continue-on-error: true
         run: |
-            cd $(dirname $(dirname $(which flutter)))
-            [[ "3.24.5" == ${{env.FLUTTER_VERSION}} ]] && git apply ${{ github.workspace }}/.github/patches/flutter_3.24.4_dropdown_menu_enableFilter.diff
+          cd $(dirname $(dirname $(which flutter)))
+          git fetch
+          git checkout ${{ env.FLUTTER_VERSION }}
+          if git apply --check ${{ github.workspace }}/.github/patches/flutter_3.24.4_dropdown_menu_enableFilter.diff; then
+            git apply ${{ github.workspace }}/.github/patches/flutter_3.24.4_dropdown_menu_enableFilter.diff
+          else
+            echo "Patch does not apply" && exit 1
+          fi
       
       - name: Workaround for flutter issue
         shell: bash
