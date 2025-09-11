@@ -160,6 +160,9 @@ jobs:
               name: bridge-artifact
               path: ./
 
+      - name: Uninstall existing cmake
+        run: brew uninstall cmake || true
+
       - name: Install imagemagick and potrace and nasm and and
         shell: bash
         run: |
