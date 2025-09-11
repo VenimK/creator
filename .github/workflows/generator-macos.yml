@@ -294,6 +294,22 @@ jobs:
           channel: "stable"
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+      
+      - name: Enforce clippy lint for static_mut_refs
+        run: cargo clippy -- -D static_mut_refs
+  
+      - name: Clippy for unused imports
+        run: cargo clippy -- -D unused-imports
+  
+      - name: Update CocoaPods
+        run: sudo gem install cocoapods
+  
+      - name: Clean and install pods
+        run: |
+          cd flutter/macos
+          rm -rf Pods Podfile.lock
+          pod install
+
 
       - name: Patch flutter
         continue-on-error: true
