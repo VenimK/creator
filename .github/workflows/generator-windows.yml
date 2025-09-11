@@ -325,6 +325,7 @@ jobs:
       - name: Install vcpkg dependencies
         env:
           VCPKG_DEFAULT_HOST_TRIPLET: ${{ matrix.job.vcpkg-triplet }}
+        shell: bash
         run: |
           if ! $VCPKG_ROOT/vcpkg \
               install \
