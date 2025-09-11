@@ -325,15 +325,11 @@ jobs:
       - name: Install vcpkg dependencies
         env:
           VCPKG_DEFAULT_HOST_TRIPLET: ${{ matrix.job.vcpkg-triplet }}
-        shell: bash
         run: |
           if ! $VCPKG_ROOT/vcpkg \
-              install \
-              libjpeg-turbo@3.1.0#1 \
-              pkgconf@2.4.3 \
-              vcpkg-cmake-get-vars@2024-09-22 \
-              --triplet ${{ matrix.job.vcpkg-triplet }} \
-              --x-install-root="$VCPKG_ROOT/installed"; then
+            install \
+            --triplet ${{ matrix.job.vcpkg-triplet }} \
+            --x-install-root="$VCPKG_ROOT/installed"; then
               find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
                 echo "$_1:"
                 echo "======"
@@ -344,6 +340,7 @@ jobs:
               exit 1
             fi
             head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
+        shell: bash
 
       - name: icon stuff
         if: ${{ inputs.iconlink != 'false' }}
