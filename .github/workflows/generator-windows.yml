@@ -327,7 +327,7 @@ jobs:
           VCPKG_DEFAULT_HOST_TRIPLET: ${{ matrix.job.vcpkg-triplet }}
         run: |
           if ! $VCPKG_ROOT/vcpkg \
-            install \
+              install \
               libjpeg-turbo@3.1.0#1 \
               pkgconf@2.4.3 \
               vcpkg-cmake-get-vars@2024-09-22 \
@@ -343,7 +343,6 @@ jobs:
               exit 1
             fi
             head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
-          shell: bash
 
       - name: icon stuff
         if: ${{ inputs.iconlink != 'false' }}
