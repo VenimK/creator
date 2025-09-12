@@ -6,7 +6,7 @@ class GenerateForm(forms.Form):
     #Platform
     platform = forms.ChoiceField(choices=[
         ('windows','Windows'),
-        ('linux','Linux (currently unavailable)'),
+        ('linux','Linux'),
         ('android','Android'),
         ('macos','macOS'),
         ('macos-x86','macOS (x86)')
