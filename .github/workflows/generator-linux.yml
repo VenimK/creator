@@ -644,7 +644,8 @@ jobs:
           method: 'POST'
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "Generation cancelled, try again"}'
-build-appimage:
+          
+  build-appimage:
     name: Build appimage ${{ matrix.job.target }}
     needs: [build-rustdesk-linux]
     runs-on: ubuntu-22.04
@@ -703,7 +704,7 @@ build-appimage:
         run: |
           curl -i -X POST -H "Content-Type: multipart/form-data" -H "Authorization: Bearer ${{ fromJson(inputs.extras).token }}" -F "file=@./appimage/${{ inputs.filename }}-${{ matrix.job.arch }}.AppImage" ${{ inputs.apiServer }}/api/save_custom_client
 
-build-flatpak:
+  build-flatpak:
     name: Build flatpak ${{ matrix.job.target }}${{ matrix.job.suffix }}
     needs:
       - build-rustdesk-linux
