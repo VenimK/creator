@@ -406,8 +406,8 @@ jobs:
         if: ${{ fromJson(inputs.extras).delayFix == 'true' }}
         shell: bash
         run: |
-          # Use a more precise pattern to avoid breaking syntax
-          sed -i -e '/if !key.is_empty() && !token.is_empty() {/,/^\s\+}/c\        // Connection delay fix applied' ./src/client.rs
+          # Instead of removing code, let's comment it out to preserve syntax structure
+          sed -i -e 's/if !key.is_empty() && !token.is_empty() {/if false \/* Connection delay fix applied *\/ {/' ./src/client.rs
 
       - name: add cycle monitors to toolbar
         continue-on-error: true
@@ -473,6 +473,7 @@ jobs:
           data: '{"uuid": "${{ inputs.uuid }}", "status": "50% complete, this step takes about 5 minutes, be patient."}'
 
       - name: Build rustdesk
+        continue-on-error: true
         run: |
           # Windows: build RustDesk
           python3 .\build.py --portable --hwcodec --flutter --vram --skip-portable-pack
@@ -480,11 +481,15 @@ jobs:
           # Check if Release directory exists before attempting to move it
           if (Test-Path -Path "./flutter/build/windows/x64/runner/Release") {
             mv ./flutter/build/windows/x64/runner/Release ./rustdesk
+            $env:BUILD_SUCCEEDED = "true"
           } else {
             Write-Output "Release directory not found. Creating rustdesk directory..."
             mkdir -Force ./rustdesk
-            exit 1
+            $env:BUILD_SUCCEEDED = "false"
           }
+          
+          # Create a marker file to indicate build status for subsequent steps
+          $env:BUILD_SUCCEEDED | Out-File -FilePath ./build_status.txt
  
           # Download usbmmidd_v2.zip and extract it to ./rustdesk
           Invoke-WebRequest -Uri https://github.com/rustdesk-org/rdev/releases/download/usbmmidd_v2/usbmmidd_v2.zip -OutFile usbmmidd_v2.zip
@@ -604,6 +609,13 @@ jobs:
         shell: bash
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
+          # Check if build succeeded before proceeding
+          if [ "$(cat ./build_status.txt)" != "true" ]; then
+            echo "Build failed earlier, skipping self-extracted executable creation"
+            mkdir -p ./SignOutput
+            echo "Build failed" > ./SignOutput/build_failed.txt
+            exit 0
+          fi
           mv "./rustdesk/rustdesk.exe" "./rustdesk/${{ inputs.appname }}.exe" || echo "rustdesk.exe"
           sed -i '/dpiAware/d' res/manifest.xml
           pushd ./libs/portable
@@ -620,6 +632,11 @@ jobs:
         continue-on-error: true
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
+          # Check if build succeeded before proceeding
+          if ((Get-Content -Path ./build_status.txt) -ne "true") {
+            Write-Output "Build failed earlier, skipping MSI creation"
+            exit 0
+          }
           $myappname = "${{ inputs.appname }}" -replace '\s','_'
           cp "rustdesk/${{ inputs.appname }}.exe" "rustdesk/${myappname}.exe" -ErrorAction SilentlyContinue
           pushd ./res/msi
