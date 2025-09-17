@@ -339,33 +339,6 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "20% complete"}'
 
-      - name: Fix vcpkg configuration
-        shell: bash
-        run: |
-          # Remove any existing vcpkg-configuration.json to avoid conflicts
-          if [ -f "vcpkg-configuration.json" ]; then
-            echo "Removing existing vcpkg-configuration.json"
-            rm vcpkg-configuration.json
-          fi
-          
-          # Check if vcpkg.json exists and modify it if needed
-          if [ -f "vcpkg.json" ]; then
-            # Backup original file
-            cp vcpkg.json vcpkg.json.bak
-            
-            # Check if there's a specific version of libjpeg-turbo that's causing problems
-            if grep -q '"libjpeg-turbo".*"3.1.1"' vcpkg.json; then
-              echo "Found libjpeg-turbo with version 3.1.1, updating to use default version"
-              # Remove the version specification to use the default version
-              sed -i -E 's/(\"libjpeg-turbo\").*: *\"3.1.1\"/\1/' vcpkg.json
-            fi
-            
-            echo "Current vcpkg.json configuration:"
-            cat vcpkg.json
-          else
-            echo "vcpkg.json not found, no changes needed"
-          fi
-
       - name: Setup vcpkg with Github Actions binary cache
         uses: lukka/run-vcpkg@v11
         with:
