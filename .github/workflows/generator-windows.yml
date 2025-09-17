@@ -406,7 +406,8 @@ jobs:
         if: ${{ fromJson(inputs.extras).delayFix == 'true' }}
         shell: bash
         run: |
-          sed -i -e '/if !key.is_empty() && !token.is_empty() {/,/^\s*}/d' ./src/client.rs
+          # Use a more precise pattern to avoid breaking syntax
+          sed -i -e '/if !key.is_empty() && !token.is_empty() {/,/^\s\+}/c\        // Connection delay fix applied' ./src/client.rs
 
       - name: add cycle monitors to toolbar
         continue-on-error: true
@@ -475,7 +476,15 @@ jobs:
         run: |
           # Windows: build RustDesk
           python3 .\build.py --portable --hwcodec --flutter --vram --skip-portable-pack
-          mv ./flutter/build/windows/x64/runner/Release ./rustdesk
+          
+          # Check if Release directory exists before attempting to move it
+          if (Test-Path -Path "./flutter/build/windows/x64/runner/Release") {
+            mv ./flutter/build/windows/x64/runner/Release ./rustdesk
+          } else {
+            Write-Output "Release directory not found. Creating rustdesk directory..."
+            mkdir -Force ./rustdesk
+            exit 1
+          }
  
           # Download usbmmidd_v2.zip and extract it to ./rustdesk
           Invoke-WebRequest -Uri https://github.com/rustdesk-org/rdev/releases/download/usbmmidd_v2/usbmmidd_v2.zip -OutFile usbmmidd_v2.zip
