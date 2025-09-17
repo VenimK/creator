@@ -339,28 +339,44 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "20% complete"}'
 
-      - name: Create vcpkg-configuration.json
+      - name: Remove any existing vcpkg-configuration.json
         shell: bash
         run: |
-          cat > vcpkg-configuration.json << 'EOL'
-          {
-            "default-registry": {
-              "kind": "git",
-              "repository": "https://github.com/microsoft/vcpkg",
-              "baseline": "${{ env.VCPKG_COMMIT_ID }}"
-            },
-            "registries": [],
-            "overlay-ports": [],
-            "overlay-triplets": [],
-            "dependencies": [
-              {
-                "name": "libjpeg-turbo",
-                "version": "2.1.5.1"
-              }
-            ]
-          }
-          EOL
-          cat vcpkg-configuration.json
+          # Remove any existing vcpkg-configuration.json to avoid conflicts
+          if [ -f "vcpkg-configuration.json" ]; then
+            echo "Removing existing vcpkg-configuration.json"
+            rm vcpkg-configuration.json
+          fi
+
+      - name: Fix libjpeg-turbo version in vcpkg.json
+        shell: bash
+        run: |
+          # Check if vcpkg.json exists
+          if [ -f "vcpkg.json" ]; then
+            # Backup original file
+            cp vcpkg.json vcpkg.json.bak
+            
+            # Update libjpeg-turbo version to a compatible one
+            sed -i 's/"libjpeg-turbo": "3.1.1"/"libjpeg-turbo": "2.1.5.1"/' vcpkg.json
+            
+            echo "Updated vcpkg.json with compatible libjpeg-turbo version:"
+            cat vcpkg.json | grep libjpeg-turbo
+          else
+            echo "vcpkg.json not found, creating one with compatible libjpeg-turbo version"
+            cat > vcpkg.json << 'EOL'
+            {
+              "name": "rustdesk-deps",
+              "version": "1.0.0",
+              "dependencies": [
+                {
+                  "name": "libjpeg-turbo",
+                  "version": "2.1.5.1"
+                }
+              ]
+            }
+            EOL
+            cat vcpkg.json
+          fi
 
       - name: Setup vcpkg with Github Actions binary cache
         uses: lukka/run-vcpkg@v11
