@@ -226,7 +226,7 @@ jobs:
           sed -i -e 's|Purslane Ltd.|${{ fromJson(inputs.extras).compname }}|' ./res/setup.nsi
           sed -i -e 's|PURSLANE|${{ fromJson(inputs.extras).compname }}|' ./res/msi/preprocess.py
           sed -i -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./res/msi/preprocess.py
-          sed -i -e 's|"Copyright © 2025 Purslane Ltd. All rights reserved."|"Copyright © 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved."|' ./flutter/windows/runner/Runner.rc
+          sed -i -e 's|"Copyright \u00A9 2025 Purslane Ltd. All rights reserved."|"Copyright \u00A9 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved."|' ./flutter/windows/runner/Runner.rc
           sed -i -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./flutter/windows/runner/Runner.rc
           sed -i -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./Cargo.toml
           sed -i -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./libs/portable/Cargo.toml
@@ -300,7 +300,7 @@ jobs:
           flutter precache --windows
           Invoke-WebRequest -Uri https://github.com/rustdesk/engine/releases/download/main/windows-x64-release.zip -OutFile windows-x64-release.zip
           Expand-Archive -Path windows-x64-release.zip -DestinationPath windows-x64-release
-          mv -Force windows-x64-release/*  C:/hostedtoolcache/windows/flutter/stable-${{ env.FLUTTER_VERSION }}-x64/bin/cache/artifacts/engine/windows-x64-release/
+          mv -Force windows-x64-release/*   C:/hostedtoolcache/windows/flutter/stable-${{ env.FLUTTER_VERSION }}-x64/bin/cache/artifacts/engine/windows-x64-release/
 
       - name: Patch flutter
         continue-on-error: true
@@ -339,7 +339,7 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "20% complete"}'
 
-      - name: Remove any existing vcpkg-configuration.json
+      - name: Fix vcpkg configuration
         shell: bash
         run: |
           # Remove any existing vcpkg-configuration.json to avoid conflicts
@@ -347,35 +347,23 @@ jobs:
             echo "Removing existing vcpkg-configuration.json"
             rm vcpkg-configuration.json
           fi
-
-      - name: Fix libjpeg-turbo version in vcpkg.json
-        shell: bash
-        run: |
-          # Check if vcpkg.json exists
+          
+          # Check if vcpkg.json exists and modify it if needed
           if [ -f "vcpkg.json" ]; then
             # Backup original file
             cp vcpkg.json vcpkg.json.bak
             
-            # Update libjpeg-turbo version to a compatible one
-            sed -i 's/"libjpeg-turbo": "3.1.1"/"libjpeg-turbo": "2.1.5.1"/' vcpkg.json
+            # Check if there's a specific version of libjpeg-turbo that's causing problems
+            if grep -q '"libjpeg-turbo".*"3.1.1"' vcpkg.json; then
+              echo "Found libjpeg-turbo with version 3.1.1, updating to use default version"
+              # Remove the version specification to use the default version
+              sed -i -E 's/(\"libjpeg-turbo\").*: *\"3.1.1\"/\1/' vcpkg.json
+            fi
             
-            echo "Updated vcpkg.json with compatible libjpeg-turbo version:"
-            cat vcpkg.json | grep libjpeg-turbo
-          else
-            echo "vcpkg.json not found, creating one with compatible libjpeg-turbo version"
-            cat > vcpkg.json << 'EOL'
-            {
-              "name": "rustdesk-deps",
-              "version": "1.0.0",
-              "dependencies": [
-                {
-                  "name": "libjpeg-turbo",
-                  "version": "2.1.5.1"
-                }
-              ]
-            }
-            EOL
+            echo "Current vcpkg.json configuration:"
             cat vcpkg.json
+          else
+            echo "vcpkg.json not found, no changes needed"
           fi
 
       - name: Setup vcpkg with Github Actions binary cache
