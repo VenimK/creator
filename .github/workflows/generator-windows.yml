@@ -339,6 +339,29 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "20% complete"}'
 
+      - name: Create vcpkg-configuration.json
+        shell: bash
+        run: |
+          cat > vcpkg-configuration.json << 'EOL'
+          {
+            "default-registry": {
+              "kind": "git",
+              "repository": "https://github.com/microsoft/vcpkg",
+              "baseline": "${{ env.VCPKG_COMMIT_ID }}"
+            },
+            "registries": [],
+            "overlay-ports": [],
+            "overlay-triplets": [],
+            "dependencies": [
+              {
+                "name": "libjpeg-turbo",
+                "version": "2.1.5.1"
+              }
+            ]
+          }
+          EOL
+          cat vcpkg-configuration.json
+
       - name: Setup vcpkg with Github Actions binary cache
         uses: lukka/run-vcpkg@v11
         with:
