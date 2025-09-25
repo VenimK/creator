@@ -455,8 +455,16 @@ jobs:
         continue-on-error: true
         if: fromJson(inputs.extras).hidecm == 'true'
         run: |
+          # Download the patch file
           Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/hidecm.diff -OutFile hidecm.diff
-          git apply hidecm.diff
+          
+          # Check if we're in the correct directory with the Flutter structure
+          if (Test-Path -Path "flutter/lib/models/server_model.dart") {
+            git apply hidecm.diff
+          } else {
+            Write-Host "Flutter directory structure not found. Make sure you're in the RustDesk repository root."
+            # Continue anyway since continue-on-error is true
+          }
 
       - name: removeNewVersionNotif
         continue-on-error: true
