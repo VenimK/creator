@@ -459,11 +459,11 @@ jobs:
           Write-Host "Applying updated hidecm patch"
           if (Test-Path -Path "flutter") {
             Write-Host "Flutter directory exists"
-            Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/hidecm_updated.diff -OutFile hidecm_updated.diff
-            git apply hidecm_updated.diff
+            Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/hidecm.diff -OutFile hidecm.diff
+            git apply hidecm.diff
             if ($LASTEXITCODE -ne 0) {
               Write-Host "Failed to apply patch, attempting with --reject option"
-              git apply --reject hidecm_updated.diff || echo "Applied what could be applied, check .rej files"
+              git apply --reject hidecm.diff || echo "Applied what could be applied, check .rej files"
             }
           } else {
             Write-Host "Flutter directory not found - cannot apply hidecm patch"
