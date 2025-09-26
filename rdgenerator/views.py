@@ -76,6 +76,9 @@ def generator_view(request):
             defaultManual = form.cleaned_data['defaultManual']
             overrideManual = form.cleaned_data['overrideManual']
             slogan = form.cleaned_data['slogan']
+            enablePrinter = form.cleaned_data['enablePrinter']
+            enableCamera = form.cleaned_data['enableCamera']
+            enableTerminal = form.cleaned_data['enableTerminal']
 
             filename = re.sub(r'[^\w\s-]', '_', filename).strip()
             myuuid = str(uuid.uuid4())
@@ -134,6 +137,14 @@ def generator_view(request):
                 decodedCustom['default-settings']['enable-record-session'] = 'Y' if enableRecording else 'N'
                 decodedCustom['default-settings']['enable-block-input'] = 'Y' if enableBlockingInput else 'N'
                 decodedCustom['default-settings']['allow-remote-config-modification'] = 'Y' if enableRemoteModi else 'N'
+                decodedCustom['default-settings']['hide-cm'] = 'Y' if hidecm else 'N'
+                decodedCustom['default-settings']['verification-method'] = 'use-permanent-password' if hidecm else 'use-both-passwords'
+                decodedCustom['default-settings']['approve-mode'] = passApproveMode
+                decodedCustom['default-settings']['allow-hide-cm'] = 'Y' if hidecm else 'N'
+                decodedCustom['default-settings']['allow-remove-wallpaper'] = 'Y' if removeWallpaper else 'N'
+                decodedCustom['default-settings']['enable-remote-printer'] = 'Y' if enablePrinter else 'N'
+                decodedCustom['default-settings']['enable-camera'] = 'Y' if enableCamera else 'N'
+                decodedCustom['default-settings']['enable-terminal'] = 'Y' if enableTerminal else 'N'
             else:
                 decodedCustom['override-settings']['access-mode'] = permissionsType
                 decodedCustom['override-settings']['enable-keyboard'] = 'Y' if enableKeyboard else 'N'
@@ -145,6 +156,14 @@ def generator_view(request):
                 decodedCustom['override-settings']['enable-record-session'] = 'Y' if enableRecording else 'N'
                 decodedCustom['override-settings']['enable-block-input'] = 'Y' if enableBlockingInput else 'N'
                 decodedCustom['override-settings']['allow-remote-config-modification'] = 'Y' if enableRemoteModi else 'N'
+                decodedCustom['override-settings']['direct-server'] = 'Y' if enableDirectIP else 'N'
+                decodedCustom['override-settings']['verification-method'] = 'use-permanent-password' if hidecm else 'use-both-passwords'
+                decodedCustom['override-settings']['approve-mode'] = passApproveMode
+                decodedCustom['override-settings']['allow-hide-cm'] = 'Y' if hidecm else 'N'
+                decodedCustom['override-settings']['allow-remove-wallpaper'] = 'Y' if removeWallpaper else 'N'
+                decodedCustom['override-settings']['enable-remote-printer'] = 'Y' if enablePrinter else 'N'
+                decodedCustom['override-settings']['enable-camera'] = 'Y' if enableCamera else 'N'
+                decodedCustom['override-settings']['enable-terminal'] = 'Y' if enableTerminal else 'N'
 
             for line in defaultManual.splitlines():
                 k, value = line.split('=')
