@@ -467,39 +467,43 @@ jobs:
 
       - name: set-permanent-password
         continue-on-error: true
-        if: fromJson(inputs.extras).permanentPassword != ''
         shell: bash
         run: |
           echo "=== PERMANENT PASSWORD STEP START ==="
-          echo "Checking if permanent password is provided..."
-          echo "Raw extras: ${{ inputs.extras }}"
-          echo "Permanent password value: '${{ fromJson(inputs.extras).permanentPassword }}'"
-          echo "Custom config: '${{ inputs.custom }}'"
+          echo "Raw extras JSON: ${{ inputs.extras }}"
 
-          PERM_PASSWORD="${{ fromJson(inputs.extras).permanentPassword }}"
-          CUSTOM_CONFIG="${{ inputs.custom }}"
+          # Check if permanentPassword exists in extras
+          if echo '${{ inputs.extras }}' | grep -q '"permanentPassword"'; then
+            PERM_PASSWORD=$(echo '${{ inputs.extras }}' | sed -n 's/.*"permanentPassword":"\([^"]*\)".*/\1/p')
+            echo "Found permanent password: '$PERM_PASSWORD'"
 
-          echo "Variables set:"
-          echo "PERM_PASSWORD length: ${#PERM_PASSWORD}"
-          echo "CUSTOM_CONFIG length: ${#CUSTOM_CONFIG}"
+            if [ ! -z "$PERM_PASSWORD" ]; then
+              CUSTOM_CONFIG="${{ inputs.custom }}"
 
-          # Add permanent password to the configuration
-          if [ ! -z "$CUSTOM_CONFIG" ]; then
-            echo "Creating custom.txt with existing config..."
-            echo -n "$CUSTOM_CONFIG" > ./flutter/assets/custom.txt
-            # Remove trailing } and add permanent password
-            sed -i 's/}$//' ./flutter/assets/custom.txt
-            echo ",\"permanent_password\":\"$PERM_PASSWORD\"}" >> ./flutter/assets/custom.txt
-            echo "Added permanent password to existing config"
+              echo "Creating custom.txt with permanent password..."
+              echo "Custom config: '$CUSTOM_CONFIG'"
+
+              # Add permanent password to the configuration
+              if [ ! -z "$CUSTOM_CONFIG" ]; then
+                echo -n "$CUSTOM_CONFIG" > ./flutter/assets/custom.txt
+                # Remove trailing } and add permanent password
+                sed -i 's/}$//' ./flutter/assets/custom.txt
+                echo ",\"permanent_password\":\"$PERM_PASSWORD\"}" >> ./flutter/assets/custom.txt
+                echo "Added permanent password to existing config"
+              else
+                echo -n "{\"permanent_password\":\"$PERM_PASSWORD\"}" > ./flutter/assets/custom.txt
+                echo "Created custom.txt with permanent password only"
+              fi
+
+              echo "Verifying custom.txt contents:"
+              cat ./flutter/assets/custom.txt
+            else
+              echo "Permanent password is empty, skipping configuration"
+            fi
           else
-            echo "Creating custom.txt with only permanent password..."
-            echo -n "{\"permanent_password\":\"$PERM_PASSWORD\"}" > ./flutter/assets/custom.txt
-            echo "Created custom.txt with permanent password only"
+            echo "No permanentPassword field found in extras JSON"
           fi
 
-          echo "Verifying custom.txt contents:"
-          ls -la ./flutter/assets/custom.txt
-          cat ./flutter/assets/custom.txt
           echo "=== PERMANENT PASSWORD STEP END ==="
 
       - name: removeNewVersionNotif
