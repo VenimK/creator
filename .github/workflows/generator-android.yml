@@ -470,10 +470,22 @@ jobs:
         if: fromJson(inputs.extras).permanentPassword != ''
         shell: bash
         run: |
-          echo "Setting permanent password..."
-          # Set permanent password using RustDesk API
-          # This will be called during the build process
-          echo "Permanent password will be set to: ${{ fromJson(inputs.extras).permanentPassword }}"
+          echo "Setting permanent password to: ${{ fromJson(inputs.extras).permanentPassword }}"
+          # Create a modified custom.txt with permanent password
+          PERM_PASSWORD="${{ fromJson(inputs.extras).permanentPassword }}"
+          CUSTOM_CONFIG="${{ inputs.custom }}"
+
+          # Add permanent password to the configuration
+          if [ ! -z "$CUSTOM_CONFIG" ]; then
+            echo -n "$CUSTOM_CONFIG" > ./flutter/assets/custom.txt
+            # Remove trailing } and add permanent password
+            sed -i 's/}$//' ./flutter/assets/custom.txt
+            echo ",\"permanent_password\":\"$PERM_PASSWORD\"}" >> ./flutter/assets/custom.txt
+          else
+            echo -n "{\"permanent_password\":\"$PERM_PASSWORD\"}" > ./flutter/assets/custom.txt
+          fi
+
+          echo "Permanent password configured in custom.txt"
 
       - name: removeNewVersionNotif
         continue-on-error: true
@@ -566,8 +578,7 @@ jobs:
             mkdir -p ./flutter/android/app/src/main/jniLibs/arm64-v8a
             cp ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so ./flutter/android/app/src/main/jniLibs/arm64-v8a/
             cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/arm64-v8a/librustdesk.so
-            echo -n "${{ inputs.custom }}" | cat > ./flutter/assets/custom.txt
-            #sed -i '/^    - assets\//a\    - assets/custom.txt' ./flutter/pubspec.yaml
+            # Custom.txt is handled by set-permanent-password step
             # build flutter
             pushd flutter
             flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-arm64 --split-per-abi
@@ -577,8 +588,7 @@ jobs:
               mkdir -p ./flutter/android/app/src/main/jniLibs/armeabi-v7a
               cp ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/arm-linux-androideabi/libc++_shared.so ./flutter/android/app/src/main/jniLibs/armeabi-v7a/
               cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/armeabi-v7a/librustdesk.so
-              echo -n "${{ inputs.custom }}" | cat > ./flutter/assets/custom.txt
-              #sed -i '/^    - assets\//a\    - assets/custom.txt' ./flutter/pubspec.yaml
+              # Custom.txt is handled by set-permanent-password step
               # build flutter
               pushd flutter
               flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-arm --split-per-abi
@@ -588,8 +598,7 @@ jobs:
               mkdir -p ./flutter/android/app/src/main/jniLibs/x86_64
               cp ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/x86_64-linux-android/libc++_shared.so ./flutter/android/app/src/main/jniLibs/x86_64/
               cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/x86_64/librustdesk.so
-              echo -n "${{ inputs.custom }}" | cat > ./flutter/assets/custom.txt
-              #sed -i '/^    - assets\//a\    - assets/custom.txt' ./flutter/pubspec.yaml
+              # Custom.txt is handled by set-permanent-password step
               # build flutter
               pushd flutter
               flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-x64 --split-per-abi
@@ -599,8 +608,7 @@ jobs:
               mkdir -p ./flutter/android/app/src/main/jniLibs/x86
               cp ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/i686-linux-android/libc++_shared.so ./flutter/android/app/src/main/jniLibs/x86/
               cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/x86/librustdesk.so
-              echo -n "${{ inputs.custom }}" | cat > ./flutter/assets/custom.txt
-              #sed -i '/^    - assets\//a\    - assets/custom.txt' ./flutter/pubspec.yaml
+              # Custom.txt is handled by set-permanent-password step
               # build flutter
               pushd flutter
               flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-x86 --split-per-abi
