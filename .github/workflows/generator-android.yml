@@ -473,7 +473,7 @@ jobs:
           echo "Raw custom config: ${{ inputs.custom }}"
 
           # Check if password exists in custom config (Django already added it correctly)
-          if echo '${{ inputs.custom }}' | grep -q '"password"'; then
+          if echo '${{ inputs.custom }}' | grep -q 'password'; then
             echo "Found password configuration in custom.txt"
 
             # The Django backend already added the password to custom.txt correctly
