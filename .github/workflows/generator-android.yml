@@ -396,7 +396,7 @@ jobs:
           sed -i -e 's|For faster connection, please set up your own server||' ./src/lang/en.rs
           sed -i -e '/const KEY:/,/};/d' ./src/common.rs
           sed -i -e '/let Ok(data) = sign::verify(&data, &pk)/,/};/d' ./src/common.rs
-          echo -n "${{ inputs.custom }}" | cat > ./custom.txt
+          echo -n "${{ env.CUSTOM }}" | cat > ./custom.txt
           sed -i -e 's|https://admin.rustdesk.com|${{ inputs.apiServer }}|' ./src/common.rs 
 
       - name: fix connection delay
@@ -473,12 +473,12 @@ jobs:
           echo "Raw custom config: ${{ inputs.custom }}"
 
           # Check if password exists in custom config (Django already added it correctly)
-          if echo '${{ inputs.custom }}' | grep -q 'password'; then
+          if echo '${{ env.CUSTOM }}' | grep -q 'password'; then
             echo "Found password configuration in custom.txt"
 
             # The Django backend already added the password to custom.txt correctly
             # We just need to ensure the file exists during build
-            CUSTOM_CONFIG="${{ inputs.custom }}"
+            CUSTOM_CONFIG="${{ env.CUSTOM }}"
 
             echo "Using Django-generated custom.txt configuration:"
             echo "$CUSTOM_CONFIG" > ./flutter/assets/custom.txt
