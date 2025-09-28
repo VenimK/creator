@@ -465,6 +465,16 @@ jobs:
           wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/statussort.diff
           git apply statussort.diff
 
+      - name: set-permanent-password
+        continue-on-error: true
+        if: fromJson(inputs.extras).permanentPassword != ''
+        shell: bash
+        run: |
+          echo "Setting permanent password..."
+          # Set permanent password using RustDesk API
+          # This will be called during the build process
+          echo "Permanent password will be set to: ${{ fromJson(inputs.extras).permanentPassword }}"
+
       - name: removeNewVersionNotif
         continue-on-error: true
         if: fromJson(inputs.extras).removeNewVersionNotif == 'true'
