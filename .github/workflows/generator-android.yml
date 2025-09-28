@@ -470,38 +470,24 @@ jobs:
         shell: bash
         run: |
           echo "=== PERMANENT PASSWORD STEP START ==="
-          echo "Raw extras JSON: ${{ inputs.extras }}"
+          echo "Raw custom config: ${{ inputs.custom }}"
 
-          # Check if permanentPassword exists in extras
-          if echo '${{ inputs.extras }}' | grep -q '"permanentPassword"'; then
-            PERM_PASSWORD=$(echo '${{ inputs.extras }}' | sed -n 's/.*"permanentPassword":"\([^"]*\)".*/\1/p')
-            echo "Found permanent password: '$PERM_PASSWORD'"
+          # Check if password exists in custom config (Django already added it correctly)
+          if echo '${{ inputs.custom }}' | grep -q '"password"'; then
+            echo "Found password configuration in custom.txt"
 
-            if [ ! -z "$PERM_PASSWORD" ]; then
-              CUSTOM_CONFIG="${{ inputs.custom }}"
+            # The Django backend already added the password to custom.txt correctly
+            # We just need to ensure the file exists during build
+            CUSTOM_CONFIG="${{ inputs.custom }}"
 
-              echo "Creating custom.txt with permanent password..."
-              echo "Custom config: '$CUSTOM_CONFIG'"
+            echo "Using Django-generated custom.txt configuration:"
+            echo "$CUSTOM_CONFIG" > ./flutter/assets/custom.txt
 
-              # Add permanent password to the configuration
-              if [ ! -z "$CUSTOM_CONFIG" ]; then
-                echo -n "$CUSTOM_CONFIG" > ./flutter/assets/custom.txt
-                # Remove trailing } and add permanent password
-                sed -i 's/}$//' ./flutter/assets/custom.txt
-                echo ",\"permanent_password\":\"$PERM_PASSWORD\"}" >> ./flutter/assets/custom.txt
-                echo "Added permanent password to existing config"
-              else
-                echo -n "{\"permanent_password\":\"$PERM_PASSWORD\"}" > ./flutter/assets/custom.txt
-                echo "Created custom.txt with permanent password only"
-              fi
-
-              echo "Verifying custom.txt contents:"
-              cat ./flutter/assets/custom.txt
-            else
-              echo "Permanent password is empty, skipping configuration"
-            fi
+            echo "Verifying custom.txt contents:"
+            cat ./flutter/assets/custom.txt
+            echo "Permanent password configuration completed"
           else
-            echo "No permanentPassword field found in extras JSON"
+            echo "No password configuration found in custom.txt"
           fi
 
           echo "=== PERMANENT PASSWORD STEP END ==="
