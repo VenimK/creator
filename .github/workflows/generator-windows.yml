@@ -690,12 +690,45 @@ jobs:
             
             # Check if required files exist
             if (Test-Path "preprocess.py") {
-              python preprocess.py --app-name "$myappname" --arp -d ../../rustdesk
+              Write-Host "Running preprocess.py with app name: $myappname"
+              Write-Host "Checking for executable at: ../../rustdesk/${myappname}.exe"
+              if (Test-Path "../../rustdesk/${myappname}.exe") {
+                Write-Host "Executable found, running preprocess.py..."
+                try {
+                  python preprocess.py --app-name "$myappname" --arp -d ../../rustdesk
+                  Write-Host "preprocess.py completed successfully"
+                } catch {
+                  Write-Host "Error running preprocess.py: $($_.Exception.Message)"
+                  Write-Host "Trying with original executable name..."
+                  if (Test-Path "../../rustdesk/${{ inputs.appname }}.exe") {
+                    try {
+                      python preprocess.py --app-name "${{ inputs.appname }}" --arp -d ../../rustdesk
+                      Write-Host "preprocess.py completed with original name"
+                    } catch {
+                      Write-Host "preprocess.py failed with both names, MSI build may fail"
+                    }
+                  }
+                }
+              } else {
+                Write-Host "Warning: Executable ../../rustdesk/${myappname}.exe not found"
+                Write-Host "Trying with original name: ../../rustdesk/${{ inputs.appname }}.exe"
+                if (Test-Path "../../rustdesk/${{ inputs.appname }}.exe") {
+                  try {
+                    python preprocess.py --app-name "${{ inputs.appname }}" --arp -d ../../rustdesk
+                    Write-Host "preprocess.py completed with original name"
+                  } catch {
+                    Write-Host "preprocess.py failed: $($_.Exception.Message)"
+                  }
+                } else {
+                  Write-Host "Error: No executable found for MSI preprocessing"
+                }
+              }
             } else {
               Write-Host "Warning: preprocess.py not found, skipping preprocessing"
             }
             
             if (Test-Path "msi.sln") {
+              Write-Host "Found msi.sln, proceeding with MSI build..."
               nuget restore msi.sln
               msbuild msi.sln -p:Configuration=Release -p:Platform=x64 /p:TargetVersion=Windows10
               
