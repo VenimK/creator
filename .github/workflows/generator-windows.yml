@@ -781,13 +781,18 @@ jobs:
               
               Write-Host "Created Variables.wxi file"
               
-              # Try to modify Package.wxs to include our variables
-              if (Test-Path "Package/Package.wxs") {
-                $packageContent = Get-Content "Package/Package.wxs" -Raw
-                if ($packageContent -notmatch "Variables.wxi") {
-                  $packageContent = $packageContent -replace '(<Wix[^>]*>)', '$1<?include Variables.wxi?>'
-                  $packageContent | Out-File -FilePath "Package/Package.wxs" -Encoding UTF8
-                  Write-Host "Modified Package.wxs to include Variables.wxi"
+              # Modify all WiX files to include our variables
+              $wixFiles = @("Package/Package.wxs", "Package/Components/RustDesk.wxs", "Package/Fragments/AddRemoveProperties.wxs", "Package/Fragments/ShortcutProperties.wxs")
+              foreach ($wixFile in $wixFiles) {
+                if (Test-Path $wixFile) {
+                  $content = Get-Content $wixFile -Raw
+                  if ($content -notmatch "Variables.wxi") {
+                    $content = $content -replace '(<Wix[^>]*>)', '$1<?include Variables.wxi?>'
+                    $content | Out-File -FilePath $wixFile -Encoding UTF8
+                    Write-Host "Modified $wixFile to include Variables.wxi"
+                  }
+                } else {
+                  Write-Host "Warning: $wixFile not found"
                 }
               }
               
