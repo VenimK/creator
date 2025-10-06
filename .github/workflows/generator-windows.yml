@@ -730,6 +730,67 @@ jobs:
             if (Test-Path "msi.sln") {
               Write-Host "Found msi.sln, proceeding with MSI build..."
               nuget restore msi.sln
+              
+              # Define all required WiX variables directly in MSBuild command
+              $productName = "$myappname"
+              $productLower = $myappname.ToLower()
+              $version = "${{ env.VERSION }}"
+              $manufacturer = "Purslane Ltd"
+              $description = "$myappname Remote Desktop"
+              $regKeyRoot = "HKEY_CURRENT_USER\Software\$myappname"
+              $buildDir = "../../rustdesk"
+              $upgradeCode = "{12345678-1234-1234-1234-123456789012}"
+              $buildDate = Get-Date -Format "yyyy-MM-dd"
+              
+              Write-Host "Building MSI with variables:"
+              Write-Host "  Product: $productName"
+              Write-Host "  Version: $version"
+              Write-Host "  Manufacturer: $manufacturer"
+              
+              # Create WiX variables file manually since preprocess.py failed
+              Write-Host "Creating WiX variables file manually..."
+              New-Item -Path "Package" -ItemType Directory -Force -ErrorAction SilentlyContinue
+              
+              # Create the variables content line by line to avoid YAML issues
+              $xmlHeader = '<?xml version="1.0" encoding="utf-8"?>'
+              $includeStart = '<Include>'
+              $productDef = "  <?define Product=`"$productName`"?>"
+              $productLowerDef = "  <?define ProductLower=`"$productLower`"?>"
+              $versionDef = "  <?define Version=`"$version`"?>"
+              $manufacturerDef = "  <?define Manufacturer=`"$manufacturer`"?>"
+              $descriptionDef = "  <?define Description=`"$description`"?>"
+              $regKeyDef = "  <?define RegKeyRoot=`"$regKeyRoot`"?>"
+              $buildDirDef = "  <?define BuildDir=`"$buildDir`"?>"
+              $upgradeCodeDef = "  <?define UpgradeCode=`"$upgradeCode`"?>"
+              $buildDateDef = "  <?define BuildDate=`"$buildDate`"?>"
+              $includeEnd = '</Include>'
+              
+              # Write to file
+              $xmlHeader | Out-File -FilePath "Package/Variables.wxi" -Encoding UTF8
+              $includeStart | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
+              $productDef | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
+              $productLowerDef | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
+              $versionDef | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
+              $manufacturerDef | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
+              $descriptionDef | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
+              $regKeyDef | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
+              $buildDirDef | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
+              $upgradeCodeDef | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
+              $buildDateDef | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
+              $includeEnd | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
+              
+              Write-Host "Created Variables.wxi file"
+              
+              # Try to modify Package.wxs to include our variables
+              if (Test-Path "Package/Package.wxs") {
+                $packageContent = Get-Content "Package/Package.wxs" -Raw
+                if ($packageContent -notmatch "Variables.wxi") {
+                  $packageContent = $packageContent -replace '(<Wix[^>]*>)', '$1<?include Variables.wxi?>'
+                  $packageContent | Out-File -FilePath "Package/Package.wxs" -Encoding UTF8
+                  Write-Host "Modified Package.wxs to include Variables.wxi"
+                }
+              }
+              
               msbuild msi.sln -p:Configuration=Release -p:Platform=x64 /p:TargetVersion=Windows10
               
               # Check if MSI was actually built
