@@ -781,15 +781,51 @@ jobs:
               
               Write-Host "Created Variables.wxi file"
               
-              # Modify all WiX files to include our variables
-              $wixFiles = @("Package/Package.wxs", "Package/Components/RustDesk.wxs", "Package/Fragments/AddRemoveProperties.wxs", "Package/Fragments/ShortcutProperties.wxs")
+              # List all WiX files to debug
+              Write-Host "Listing WiX files in Package directory:"
+              Get-ChildItem -Path "Package" -Recurse -Filter "*.wxs" | ForEach-Object { Write-Host "  $($_.FullName)" }
+              
+              # Verify Variables.wxi was created
+              if (Test-Path "Package/Variables.wxi") {
+                Write-Host "Variables.wxi exists at Package/Variables.wxi"
+                Write-Host "Variables.wxi content:"
+                Get-Content "Package/Variables.wxi" | ForEach-Object { Write-Host "  $_" }
+              } else {
+                Write-Host "ERROR: Variables.wxi not found!"
+              }
+              
+              # Modify all WiX files to include our variables with correct path
+              $wixFiles = @(
+                "Package/Package.wxs", 
+                "Package/Components/RustDesk.wxs", 
+                "Package/Components/Folders.wxs",
+                "Package/Components/Regs.wxs",
+                "Package/Fragments/AddRemoveProperties.wxs", 
+                "Package/Fragments/ShortcutProperties.wxs"
+              )
+              
               foreach ($wixFile in $wixFiles) {
                 if (Test-Path $wixFile) {
                   $content = Get-Content $wixFile -Raw
                   if ($content -notmatch "Variables.wxi") {
-                    $content = $content -replace '(<Wix[^>]*>)', '$1<?include Variables.wxi?>'
+                    # Use correct relative path - all files should use same path since Variables.wxi is in Package root
+                    $includePath = "Variables.wxi"
+                    
+                    # For files in subdirectories, they need to go up one level
+                    if ($wixFile -like "*Components/*" -or $wixFile -like "*Fragments/*") {
+                      $includePath = "../Variables.wxi"
+                    }
+                    
+                    # Insert the include right after the Wix opening tag
+                    $content = $content -replace '(<Wix[^>]*>)', "`$1`r`n  <?include $includePath?>"
                     $content | Out-File -FilePath $wixFile -Encoding UTF8
-                    Write-Host "Modified $wixFile to include Variables.wxi"
+                    Write-Host "Modified $wixFile to include $includePath"
+                    
+                    # Show first few lines to verify the change
+                    Write-Host "First few lines of modified $wixFile"
+                    (Get-Content $wixFile | Select-Object -First 5) | ForEach-Object { Write-Host "  $_" }
+                  } else {
+                    Write-Host "$wixFile already includes Variables.wxi"
                   }
                 } else {
                   Write-Host "Warning: $wixFile not found"
