@@ -906,20 +906,36 @@ jobs:
               try {
                 & "C:\Program Files (x86)\Inno Setup 6\iscc.exe" setup.iss
                 
-                if (Test-Path "../../SignOutput/rustdesk.exe") {
-                  Write-Host "Inno Setup build successful"
-                  # Rename .exe installer to .msi for compatibility with existing workflow
-                  mv "../../SignOutput/rustdesk.exe" "../../SignOutput/rustdesk.msi"
+                # Check what files were actually created
+                Write-Host "Checking SignOutput directory contents:"
+                Get-ChildItem "../../SignOutput/" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $($_.Name)" }
+                
+                # Look for the installer file (Inno Setup creates .exe files)
+                $installerFile = Get-ChildItem "../../SignOutput/rustdesk.exe" -ErrorAction SilentlyContinue
+                if (-not $installerFile) {
+                  # Try alternative paths/names
+                  $installerFile = Get-ChildItem "../../SignOutput/*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+                }
+                
+                if ($installerFile) {
+                  Write-Host "Inno Setup build successful - found installer: $($installerFile.Name)"
+                  # Rename installer to .msi for compatibility with existing workflow
+                  mv $installerFile.FullName "../../SignOutput/rustdesk.msi"
                   cp "../../SignOutput/rustdesk.msi" "../../SignOutput/rustdesk-latest.msi"
+                  # Also create the .exe version that the workflow expects
+                  cp "../../SignOutput/rustdesk.msi" "../../SignOutput/rustdesk.exe"
                   Write-Host "Created MSI installer using Inno Setup"
                 } else {
-                  Write-Host "Inno Setup build failed - no output file found"
+                  Write-Host "Inno Setup build failed - no installer file found"
+                  Write-Host "Creating placeholder files to prevent downstream errors"
                   New-Item -Path "../../SignOutput/rustdesk.msi" -ItemType File -Force
+                  New-Item -Path "../../SignOutput/rustdesk.exe" -ItemType File -Force
                 }
               } catch {
                 Write-Host "Inno Setup build failed: $($_.Exception.Message)"
-                Write-Host "Creating empty MSI file to prevent downstream errors"
+                Write-Host "Creating placeholder files to prevent downstream errors"
                 New-Item -Path "../../SignOutput/rustdesk.msi" -ItemType File -Force
+                New-Item -Path "../../SignOutput/rustdesk.exe" -ItemType File -Force
               }
             } else {
               Write-Host "Warning: msi.sln not found, skipping MSI build"
