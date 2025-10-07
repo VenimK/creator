@@ -763,6 +763,9 @@ jobs:
               $buildDirDef = "  <?define BuildDir=`"$buildDir`"?>"
               $upgradeCodeDef = "  <?define UpgradeCode=`"$upgradeCode`"?>"
               $buildDateDef = "  <?define BuildDate=`"$buildDate`"?>"
+              # Add RustDesk compatibility variables for hardcoded references
+              $rustDeskCompatDef = "  <?define RustDesk=`"$productName`"?>"
+              $rustDeskLowerDef = "  <?define rustdesk=`"$productLower`"?>"
               $includeEnd = '</Include>'
               
               # Write to file
@@ -777,9 +780,24 @@ jobs:
               $buildDirDef | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
               $upgradeCodeDef | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
               $buildDateDef | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
+              $rustDeskCompatDef | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
+              $rustDeskLowerDef | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
               $includeEnd | Add-Content -Path "Package/Variables.wxi" -Encoding UTF8
               
               Write-Host "Created Variables.wxi file"
+              
+              # Ensure the executable file exists with the expected name for WiX
+              $expectedExe = "../../rustdesk/rustdesk.exe"
+              $actualExe = "../../rustdesk/${myappname}.exe"
+              
+              if (!(Test-Path $expectedExe) -and (Test-Path $actualExe)) {
+                Write-Host "Creating symlink/copy from $actualExe to $expectedExe for WiX compatibility"
+                Copy-Item $actualExe $expectedExe -Force
+              } elseif (Test-Path $expectedExe) {
+                Write-Host "rustdesk.exe already exists at expected location"
+              } else {
+                Write-Host "Warning: No executable found at $actualExe or $expectedExe"
+              }
               
               # List all WiX files to debug
               Write-Host "Listing WiX files in Package directory:"
