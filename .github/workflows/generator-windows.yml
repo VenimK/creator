@@ -731,21 +731,29 @@ jobs:
               Write-Host "Found msi.sln, proceeding with MSI build..."
               nuget restore msi.sln
               
-              # Define all required WiX variables directly in MSBuild command
+              # Define all required WiX variables with proper sanitization
               $productName = "$myappname"
               $productLower = $myappname.ToLower()
               $version = "${{ env.VERSION }}"
               $manufacturer = "Purslane Ltd"
               $description = "$myappname Remote Desktop"
-              $regKeyRoot = "HKEY_CURRENT_USER\Software\$myappname"
-              $buildDir = "../../rustdesk"
+              
+              # Sanitize paths and registry keys to avoid illegal characters
+              $sanitizedAppName = $myappname -replace '[<>:"/\\|?*]', '_'
+              $regKeyRoot = "HKEY_CURRENT_USER\\Software\\$sanitizedAppName"
+              $buildDir = "..\\..\\rustdesk"  # Use Windows-style paths for WiX
               $upgradeCode = "{12345678-1234-1234-1234-123456789012}"
               $buildDate = Get-Date -Format "yyyy-MM-dd"
               
               Write-Host "Building MSI with variables:"
               Write-Host "  Product: $productName"
+              Write-Host "  ProductLower: $productLower"
               Write-Host "  Version: $version"
               Write-Host "  Manufacturer: $manufacturer"
+              Write-Host "  Description: $description"
+              Write-Host "  RegKeyRoot: $regKeyRoot"
+              Write-Host "  BuildDir: $buildDir"
+              Write-Host "  SanitizedAppName: $sanitizedAppName"
               
               # Create WiX variables file manually since preprocess.py failed
               Write-Host "Creating WiX variables file manually..."
@@ -754,17 +762,23 @@ jobs:
               # Create the variables content line by line to avoid YAML issues
               $xmlHeader = '<?xml version="1.0" encoding="utf-8"?>'
               $includeStart = '<Include>'
-              $productDef = "  <?define Product=`"$productName`"?>"
+              
+              # Escape XML special characters in values
+              $escapedProductName = $productName -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;' -replace '"', '&quot;' -replace "'", '&apos;'
+              $escapedDescription = $description -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;' -replace '"', '&quot;' -replace "'", '&apos;'
+              $escapedManufacturer = $manufacturer -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;' -replace '"', '&quot;' -replace "'", '&apos;'
+              
+              $productDef = "  <?define Product=`"$escapedProductName`"?>"
               $productLowerDef = "  <?define ProductLower=`"$productLower`"?>"
               $versionDef = "  <?define Version=`"$version`"?>"
-              $manufacturerDef = "  <?define Manufacturer=`"$manufacturer`"?>"
-              $descriptionDef = "  <?define Description=`"$description`"?>"
+              $manufacturerDef = "  <?define Manufacturer=`"$escapedManufacturer`"?>"
+              $descriptionDef = "  <?define Description=`"$escapedDescription`"?>"
               $regKeyDef = "  <?define RegKeyRoot=`"$regKeyRoot`"?>"
               $buildDirDef = "  <?define BuildDir=`"$buildDir`"?>"
               $upgradeCodeDef = "  <?define UpgradeCode=`"$upgradeCode`"?>"
               $buildDateDef = "  <?define BuildDate=`"$buildDate`"?>"
               # Add RustDesk compatibility variables for hardcoded references
-              $rustDeskCompatDef = "  <?define RustDesk=`"$productName`"?>"
+              $rustDeskCompatDef = "  <?define RustDesk=`"$escapedProductName`"?>"
               $rustDeskLowerDef = "  <?define rustdesk=`"$productLower`"?>"
               $includeEnd = '</Include>'
               
