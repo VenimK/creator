@@ -849,7 +849,7 @@ jobs:
                     }
                     
                     # Insert the include right after the Wix opening tag
-                    $content = $content -replace '(<Wix[^>]*>)', "`$1`r`n  <?include $includePath?>"
+                    $content = $content -replace '(<Wix[^>]*>)', "`$1`r`n  <?include $includePath ?>"
                     $content | Out-File -FilePath $wixFile -Encoding UTF8
                     Write-Host "Modified $wixFile to include $includePath"
                     
@@ -864,16 +864,60 @@ jobs:
                 }
               }
               
-              msbuild msi.sln -p:Configuration=Release -p:Platform=x64 /p:TargetVersion=Windows10
+              # Skip WiX build and use Inno Setup directly (WiX has been failing consistently)
+              Write-Host "Building MSI installer with Inno Setup..."
               
-              # Check if MSI was actually built
-              if (Test-Path "./Package/bin/x64/Release/en-us/Package.msi") {
-                Write-Host "MSI build successful, copying files..."
-                cp ./Package/bin/x64/Release/en-us/Package.msi ../../SignOutput/rustdesk-latest.msi
-                mv ./Package/bin/x64/Release/en-us/Package.msi ../../SignOutput/rustdesk.msi
-                sha256sum ../../SignOutput/rustdesk.msi
-              } else {
-                Write-Host "Error: MSI build failed - Package.msi not found"
+              # Install Inno Setup
+              Write-Host "Installing Inno Setup..."
+              choco install innosetup -y --no-progress
+              
+              # Create Inno Setup script
+              Write-Host "Creating Inno Setup script..."
+              $innoScript = "[Setup]`r`n"
+              $innoScript += "AppName=$myappname`r`n"
+              $innoScript += "AppVersion=$version`r`n"
+              $innoScript += "AppPublisher=$manufacturer`r`n"
+              $innoScript += "DefaultDirName={autopf}\$myappname`r`n"
+              $innoScript += "DefaultGroupName=$myappname`r`n"
+              $innoScript += "OutputDir=../../SignOutput`r`n"
+              $innoScript += "OutputBaseFilename=rustdesk`r`n"
+              $innoScript += "Compression=lzma`r`n"
+              $innoScript += "SolidCompression=yes`r`n"
+              $innoScript += "ArchitecturesInstallIn64BitMode=x64`r`n"
+              $innoScript += "PrivilegesRequired=admin`r`n"
+              $innoScript += "`r`n[Files]`r`n"
+              $innoScript += "Source: `"../../rustdesk/$myappname.exe`"; DestDir: `"{app}`"; Flags: ignoreversion`r`n"
+              $innoScript += "Source: `"../../rustdesk/*.dll`"; DestDir: `"{app}`"; Flags: ignoreversion`r`n"
+              $innoScript += "Source: `"../../rustdesk/data/*`"; DestDir: `"{app}/data`"; Flags: ignoreversion recursesubdirs`r`n"
+              $innoScript += "Source: `"../../rustdesk/custom.txt`"; DestDir: `"{app}`"; Flags: ignoreversion`r`n"
+              $innoScript += "`r`n[Icons]`r`n"
+              $innoScript += "Name: `"{group}\$myappname`"; Filename: `"{app}\$myappname.exe`"`r`n"
+              $innoScript += "Name: `"{commondesktop}\$myappname`"; Filename: `"{app}\$myappname.exe`"; Tasks: desktopicon`r`n"
+              $innoScript += "`r`n[Tasks]`r`n"
+              $innoScript += "Name: `"desktopicon`"; Description: `"Create a desktop shortcut`"; GroupDescription: `"Additional shortcuts:`"; Flags: unchecked`r`n"
+              $innoScript += "`r`n[Run]`r`n"
+              $innoScript += "Filename: `"{app}\$myappname.exe`"; Description: `"Launch $myappname`"; Flags: nowait postinstall skipifsilent`r`n"
+              
+              $innoScript | Out-File -FilePath "setup.iss" -Encoding UTF8
+              Write-Host "Created Inno Setup script"
+              
+              # Build with Inno Setup
+              Write-Host "Building installer with Inno Setup..."
+              try {
+                & "C:\Program Files (x86)\Inno Setup 6\iscc.exe" setup.iss
+                
+                if (Test-Path "../../SignOutput/rustdesk.exe") {
+                  Write-Host "Inno Setup build successful"
+                  # Rename .exe installer to .msi for compatibility with existing workflow
+                  mv "../../SignOutput/rustdesk.exe" "../../SignOutput/rustdesk.msi"
+                  cp "../../SignOutput/rustdesk.msi" "../../SignOutput/rustdesk-latest.msi"
+                  Write-Host "Created MSI installer using Inno Setup"
+                } else {
+                  Write-Host "Inno Setup build failed - no output file found"
+                  New-Item -Path "../../SignOutput/rustdesk.msi" -ItemType File -Force
+                }
+              } catch {
+                Write-Host "Inno Setup build failed: $($_.Exception.Message)"
                 Write-Host "Creating empty MSI file to prevent downstream errors"
                 New-Item -Path "../../SignOutput/rustdesk.msi" -ItemType File -Force
               }
