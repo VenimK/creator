@@ -509,15 +509,23 @@ jobs:
           DECODED_CONFIG=$(echo "${{ inputs.custom }}" | base64 -d 2>/dev/null || echo "{}")
           echo "Decoded config: $DECODED_CONFIG"
           
+          # Check for global disable-settings OR any granular hide-settings
           if echo "$DECODED_CONFIG" | grep -q '"disable-settings"[[:space:]]*:[[:space:]]*"Y"'; then
-            echo "✅ DISABLE SETTINGS: ENABLED - Applying patch to hide settings UI"
+            echo "✅ GLOBAL DISABLE SETTINGS: ENABLED - Applying patch to hide ALL settings"
             echo "Downloading disable settings patch..."
             wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/disableSettings.diff -O disableSettings.diff
             echo "Applying patch to source code..."
             git apply disableSettings.diff
-            echo "✅ Settings UI successfully disabled in build"
+            echo "✅ All settings UI successfully disabled in build"
+          elif echo "$DECODED_CONFIG" | grep -qE '"hide-(security|network|server|proxy|websocket|remote-printer)-settings"[[:space:]]*:[[:space:]]*"Y"'; then
+            echo "✅ GRANULAR HIDE SETTINGS: ENABLED - Applying patch for selective settings control"
+            echo "Downloading disable settings patch..."
+            wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/disableSettings.diff -O disableSettings.diff
+            echo "Applying patch to source code..."
+            git apply disableSettings.diff
+            echo "✅ Granular settings control successfully applied in build"
           else
-            echo "ℹ️  DISABLE SETTINGS: NOT ENABLED - Settings UI will remain accessible"
+            echo "ℹ️  SETTINGS CONTROL: NOT ENABLED - All settings UI will remain accessible"
           fi
           echo "=== DISABLE SETTINGS CHECK END ==="
 

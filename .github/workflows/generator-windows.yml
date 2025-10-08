@@ -511,15 +511,23 @@ jobs:
             $decodedConfig = [System.Text.Encoding]::UTF8.GetString($decodedBytes)
             Write-Host "Decoded config: $decodedConfig"
             
+            # Check for global disable-settings OR any granular hide-settings
             if ($decodedConfig -match '"disable-settings"\s*:\s*"Y"') {
-              Write-Host "✅ DISABLE SETTINGS: ENABLED - Applying patch to hide settings UI"
+              Write-Host "✅ GLOBAL DISABLE SETTINGS: ENABLED - Applying patch to hide ALL settings"
               Write-Host "Downloading disable settings patch..."
               Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/disableSettings.diff -OutFile disableSettings.diff
               Write-Host "Applying patch to source code..."
               git apply disableSettings.diff
-              Write-Host "✅ Settings UI successfully disabled in build"
+              Write-Host "✅ All settings UI successfully disabled in build"
+            } elseif ($decodedConfig -match '"hide-(security|network|server|proxy|websocket|remote-printer)-settings"\s*:\s*"Y"') {
+              Write-Host "✅ GRANULAR HIDE SETTINGS: ENABLED - Applying patch for selective settings control"
+              Write-Host "Downloading disable settings patch..."
+              Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/disableSettings.diff -OutFile disableSettings.diff
+              Write-Host "Applying patch to source code..."
+              git apply disableSettings.diff
+              Write-Host "✅ Granular settings control successfully applied in build"
             } else {
-              Write-Host "ℹ️  DISABLE SETTINGS: NOT ENABLED - Settings UI will remain accessible"
+              Write-Host "ℹ️  SETTINGS CONTROL: NOT ENABLED - All settings UI will remain accessible"
             }
           } catch {
             Write-Host "ℹ️  DISABLE SETTINGS: ERROR DECODING CONFIG - Settings UI will remain accessible"
