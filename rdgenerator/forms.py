@@ -31,10 +31,19 @@ class GenerateForm(forms.Form):
         ('installationY', 'No, enable installation'),
         ('installationN', 'Yes, DISABLE installation')
     ], initial='installationY')
-    settings = forms.ChoiceField(label="Disable Settings", choices=[
-        ('settingsY', 'No, enable settings'),
-        ('settingsN', 'Yes, DISABLE settings')
+    settings = forms.ChoiceField(label="Settings Control", choices=[
+        ('settingsY', 'Allow all settings'),
+        ('settingsN', 'Disable ALL settings (complete lockdown)'),
+        ('settingsGranular', 'Hide specific settings (granular control)')
     ], initial='settingsY')
+    
+    # Granular hide settings options
+    hideSecuritySettings = forms.BooleanField(label="Hide Security Settings", initial=False, required=False, help_text="Hide security/safety settings tab")
+    hideNetworkSettings = forms.BooleanField(label="Hide Network Settings", initial=False, required=False, help_text="Hide network settings tab (but allow proxy if proxy not hidden)")
+    hideServerSettings = forms.BooleanField(label="Hide Server Settings", initial=False, required=False, help_text="Hide server configuration settings")
+    hideProxySettings = forms.BooleanField(label="Hide Proxy Settings", initial=False, required=False, help_text="Hide proxy configuration settings")
+    hideWebsocketSettings = forms.BooleanField(label="Hide Websocket Settings", initial=False, required=False, help_text="Hide websocket settings")
+    hideRemotePrinterSettings = forms.BooleanField(label="Hide Remote Printer Settings", initial=False, required=False, help_text="Hide remote printer settings")
 
     #Custom Server
     serverIP = forms.CharField(label="Host", required=False)
