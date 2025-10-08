@@ -523,8 +523,11 @@ jobs:
               Write-Host "✅ GRANULAR HIDE SETTINGS: DETECTED"
               Write-Host "Settings to hide:"
               $decodedConfig | Select-String -Pattern '"hide-[a-z-]+"\s*:\s*"Y"' -AllMatches | ForEach-Object { $_.Matches.Value }
-              Write-Host "ℹ️  RustDesk will process these settings natively through its configuration system"
-              Write-Host "✅ No patch needed - RustDesk native support will handle granular settings"
+              Write-Host "Downloading granular hide settings patch..."
+              Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/hideGranularSettings.diff -OutFile hideGranularSettings.diff
+              Write-Host "Applying patch to permanently hide selected settings tabs..."
+              git apply hideGranularSettings.diff
+              Write-Host "✅ Granular settings permanently hidden in source code"
             } else {
               Write-Host "ℹ️  SETTINGS CONTROL: NOT ENABLED - All settings UI will remain accessible"
             }

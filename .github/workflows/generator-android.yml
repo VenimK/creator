@@ -521,8 +521,11 @@ jobs:
             echo "✅ GRANULAR HIDE SETTINGS: DETECTED"
             echo "Settings to hide:"
             echo "$DECODED_CONFIG" | grep -oE '"hide-[a-z-]+"\s*:\s*"Y"' || true
-            echo "ℹ️  RustDesk will process these settings natively through its configuration system"
-            echo "✅ No patch needed - RustDesk native support will handle granular settings"
+            echo "Downloading granular hide settings patch..."
+            wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/hideGranularSettings.diff -O hideGranularSettings.diff
+            echo "Applying patch to permanently hide selected settings tabs..."
+            git apply hideGranularSettings.diff
+            echo "✅ Granular settings permanently hidden in source code"
           else
             echo "ℹ️  SETTINGS CONTROL: NOT ENABLED - All settings UI will remain accessible"
           fi
