@@ -501,7 +501,7 @@ jobs:
 
       - name: disable settings
         continue-on-error: true
-        if: fromJson(inputs.custom)['disable-settings'] == 'Y'
+        if: inputs.custom != '' && contains(inputs.custom, 'disable-settings') && contains(inputs.custom, 'Y')
         run: |
           Write-Host "Applying disable settings patch..."
           Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/disableSettings.diff -OutFile disableSettings.diff
