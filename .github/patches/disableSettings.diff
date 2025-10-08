@@ -1,0 +1,62 @@
+diff --git a/flutter/lib/desktop/pages/desktop_setting_page.dart b/flutter/lib/desktop/pages/desktop_setting_page.dart
+index 1234567..abcdefg 100644
+--- a/flutter/lib/desktop/pages/desktop_setting_page.dart
++++ b/flutter/lib/desktop/pages/desktop_setting_page.dart
+@@ -100,6 +100,11 @@ class _DesktopSettingPageState extends State<DesktopSettingPage>
+ 
+   @override
+   Widget build(BuildContext context) {
++    // Check if settings are disabled via custom config
++    if (bind.mainGetCustomClientConfig('disable-settings') == 'Y') {
++      return Container();
++    }
++
+     return Scaffold(
+       backgroundColor: Theme.of(context).colorScheme.background,
+       appBar: AppBar(
+diff --git a/flutter/lib/desktop/pages/desktop_home_page.dart b/flutter/lib/desktop/pages/desktop_home_page.dart
+index 1234567..abcdefg 100644
+--- a/flutter/lib/desktop/pages/desktop_home_page.dart
++++ b/flutter/lib/desktop/pages/desktop_home_page.dart
+@@ -500,6 +500,10 @@ class _DesktopHomePageState extends State<DesktopHomePage>
+   }
+ 
+   Widget _buildSettingsButton() {
++    // Hide settings button if disabled via custom config
++    if (bind.mainGetCustomClientConfig('disable-settings') == 'Y') {
++      return Container();
++    }
+     return IconButton(
+       icon: Icon(Icons.settings),
+       onPressed: () => Navigator.push(
+diff --git a/flutter/lib/mobile/pages/settings_page.dart b/flutter/lib/mobile/pages/settings_page.dart
+index 1234567..abcdefg 100644
+--- a/flutter/lib/mobile/pages/settings_page.dart
++++ b/flutter/lib/mobile/pages/settings_page.dart
+@@ -50,6 +50,11 @@ class _SettingsPageState extends State<SettingsPage> {
+ 
+   @override
+   Widget build(BuildContext context) {
++    // Check if settings are disabled via custom config
++    if (bind.mainGetCustomClientConfig('disable-settings') == 'Y') {
++      return Scaffold(body: Center(child: Text('Settings disabled')));
++    }
++
+     return Scaffold(
+       appBar: AppBar(
+         title: Text(translate('Settings')),
+diff --git a/src/ui/index.tis b/src/ui/index.tis
+index 1234567..abcdefg 100644
+--- a/src/ui/index.tis
++++ b/src/ui/index.tis
+@@ -200,6 +200,10 @@ class Body: Reactor.Component {
+     }
+ 
+     function renderSettingsButton() {
++        // Hide settings if disabled via custom config
++        if (handler.get_custom_client_config("disable-settings") == "Y") {
++            return <div />;
++        }
+         return <button class="settings-btn" #settings>
+             {svg_checkmark}
+             {translate('Settings')}

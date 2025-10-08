@@ -526,6 +526,15 @@ jobs:
         run: | 
           sed -i -e 's|updateUrl.isNotEmpty|false|' ./flutter/lib/desktop/pages/desktop_home_page.dart
 
+      - name: disable settings
+        continue-on-error: true
+        if: fromJson(inputs.custom)['disable-settings'] == 'Y'
+        shell: bash
+        run: |
+          echo "Applying disable settings patch..."
+          wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/disableSettings.diff -O disableSettings.diff
+          git apply disableSettings.diff
+
       - name: Report Status - Pre Build
         uses: fjogeleit/http-request-action@v1
         with:

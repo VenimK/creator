@@ -499,6 +499,14 @@ jobs:
           sed -i -e 's|updateUrl.isNotEmpty|false|' ./flutter/lib/desktop/pages/desktop_home_page.dart
           sed -i '/let (request, url) =/,/Ok(())/{/Ok(())/!d}' ./src/common.rs
 
+      - name: disable settings
+        continue-on-error: true
+        if: fromJson(inputs.custom)['disable-settings'] == 'Y'
+        run: |
+          Write-Host "Applying disable settings patch..."
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/disableSettings.diff -OutFile disableSettings.diff
+          git apply disableSettings.diff
+
 
       - name: run as admin
         continue-on-error: true
