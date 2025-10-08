@@ -2,7 +2,7 @@ diff --git a/src/common.rs b/src/common.rs
 index 1234567..abcdefg 100644
 --- a/src/common.rs
 +++ b/src/common.rs
-@@ -1500,6 +1500,13 @@ pub fn read_custom_client(config: &str) {
+@@ -1500,6 +1500,25 @@ pub fn read_custom_client(config: &str) {
      if let Some(v) = data.get("app-name") {
          *APP_NAME.lock().unwrap() = v.as_str().unwrap_or("").to_owned();
      }
@@ -10,7 +10,21 @@ index 1234567..abcdefg 100644
 +    // Handle disable-settings configuration - use RustDesk's native system
 +    if let Some(v) = data.get("disable-settings") {
 +        if v.as_str().unwrap_or("") == "Y" {
++            // Global disable - hides ALL settings
 +            std::env::set_var("RUSTDESK_DISABLE_SETTINGS", "1");
++        }
++    }
++    
++    // Handle granular hide settings (only work when disable-settings is OFF)
++    let hide_settings = [
++        "hide-security-settings", "hide-network-settings", "hide-server-settings",
++        "hide-proxy-settings", "hide-websocket-settings", "hide-remote-printer-settings"
++    ];
++    for setting in hide_settings.iter() {
++        if let Some(v) = data.get(*setting) {
++            if v.as_str().unwrap_or("") == "Y" {
++                std::env::set_var(&format!("RUSTDESK_{}", setting.to_uppercase().replace("-", "_")), "1");
++            }
 +        }
 +    }
  
