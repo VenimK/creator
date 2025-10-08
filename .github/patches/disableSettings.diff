@@ -1,7 +1,26 @@
-diff --git a/res/custom.txt b/res/custom.txt
-new file mode 100644
-index 0000000..1234567
---- /dev/null
-+++ b/res/custom.txt
-@@ -0,0 +1 @@
-+disable-settings=Y
+diff --git a/flutter/lib/desktop/pages/desktop_setting_page.dart b/flutter/lib/desktop/pages/desktop_setting_page.dart
+index 1234567..abcdefg 100644
+--- a/flutter/lib/desktop/pages/desktop_setting_page.dart
++++ b/flutter/lib/desktop/pages/desktop_setting_page.dart
+@@ -100,6 +100,8 @@ class _DesktopSettingPageState extends State<DesktopSettingPage>
+ 
+   @override
+   Widget build(BuildContext context) {
++    // SETTINGS DISABLED BY CUSTOM BUILD
++    return Container(child: Center(child: Text('Settings have been disabled by administrator')));
+     super.build(context);
+     return _buildBlock(
+       children: [
+diff --git a/flutter/lib/desktop/pages/desktop_home_page.dart b/flutter/lib/desktop/pages/desktop_home_page.dart
+index 1234567..abcdefg 100644
+--- a/flutter/lib/desktop/pages/desktop_home_page.dart
++++ b/flutter/lib/desktop/pages/desktop_home_page.dart
+@@ -1000,6 +1000,8 @@ class _DesktopHomePageState extends State<DesktopHomePage>
+   }
+ 
+   Widget _buildSettingsButton() {
++    // SETTINGS DISABLED BY CUSTOM BUILD
++    return Container();
+     return IconButton(
+       icon: Icon(Icons.settings),
+       onPressed: () => Navigator.push(
