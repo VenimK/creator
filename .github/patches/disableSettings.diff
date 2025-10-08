@@ -2,12 +2,17 @@ diff --git a/flutter/lib/desktop/pages/desktop_setting_page.dart b/flutter/lib/d
 index 1234567..abcdefg 100644
 --- a/flutter/lib/desktop/pages/desktop_setting_page.dart
 +++ b/flutter/lib/desktop/pages/desktop_setting_page.dart
-@@ -100,6 +100,11 @@ class _DesktopSettingPageState extends State<DesktopSettingPage>
- 
-   @override
-   Widget build(BuildContext context) {
+@@ -1,3 +1,4 @@
++// SETTINGS DISABLED BY CUSTOM BUILD - This page has been disabled
+ import 'dart:async';
+ import 'dart:convert';
+ import 'dart:io';
+@@ -100,6 +101,11 @@ class _DesktopSettingPageState extends State<DesktopSettingPage>
+
+  @override
+  Widget build(BuildContext context) {
 +    // Check if settings are disabled via custom config
-+    if (bind.mainGetCustomClientConfig('disable-settings') == 'Y') {
++    if (true) { // Always disabled in custom builds
 +      return Container();
 +    }
 +
@@ -19,11 +24,11 @@ index 1234567..abcdefg 100644
 --- a/flutter/lib/desktop/pages/desktop_home_page.dart
 +++ b/flutter/lib/desktop/pages/desktop_home_page.dart
 @@ -500,6 +500,10 @@ class _DesktopHomePageState extends State<DesktopHomePage>
-   }
- 
-   Widget _buildSettingsButton() {
+  }
+
+  Widget _buildSettingsButton() {
 +    // Hide settings button if disabled via custom config
-+    if (bind.mainGetCustomClientConfig('disable-settings') == 'Y') {
++    if (true) { // Always disabled in custom builds
 +      return Container();
 +    }
      return IconButton(
@@ -33,12 +38,17 @@ diff --git a/flutter/lib/mobile/pages/settings_page.dart b/flutter/lib/mobile/pa
 index 1234567..abcdefg 100644
 --- a/flutter/lib/mobile/pages/settings_page.dart
 +++ b/flutter/lib/mobile/pages/settings_page.dart
-@@ -50,6 +50,11 @@ class _SettingsPageState extends State<SettingsPage> {
- 
-   @override
-   Widget build(BuildContext context) {
+@@ -1,3 +1,4 @@
++// SETTINGS DISABLED BY CUSTOM BUILD - This page has been disabled
+ import 'dart:async';
+ import 'dart:convert';
+ import 'dart:io';
+@@ -50,6 +51,11 @@ class _SettingsPageState extends State<SettingsPage> {
+
+  @override
+  Widget build(BuildContext context) {
 +    // Check if settings are disabled via custom config
-+    if (bind.mainGetCustomClientConfig('disable-settings') == 'Y') {
++    if (true) { // Always disabled in custom builds
 +      return Scaffold(body: Center(child: Text('Settings disabled')));
 +    }
 +
@@ -51,12 +61,12 @@ index 1234567..abcdefg 100644
 +++ b/src/ui/index.tis
 @@ -200,6 +200,10 @@ class Body: Reactor.Component {
      }
- 
+
      function renderSettingsButton() {
 +        // Hide settings if disabled via custom config
-+        if (handler.get_custom_client_config("disable-settings") == "Y") {
++        if (true) { // Always disabled in custom builds
 +            return <div />;
 +        }
          return <button class="settings-btn" #settings>
              {svg_checkmark}
-             {translate('Settings')}
+            {translate('Settings')}
