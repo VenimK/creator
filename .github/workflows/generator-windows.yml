@@ -523,10 +523,10 @@ jobs:
               Write-Host "✅ GRANULAR HIDE SETTINGS: DETECTED"
               Write-Host "Settings to hide:"
               $decodedConfig | Select-String -Pattern '"hide-[a-z-]+"\s*:\s*"Y"' -AllMatches | ForEach-Object { $_.Matches.Value }
-              Write-Host "Downloading granular hide settings patch..."
-              Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/hideGranularSettings.diff -OutFile hideGranularSettings.diff
-              Write-Host "Applying patch to permanently hide selected settings tabs..."
-              git apply hideGranularSettings.diff
+              Write-Host "Downloading hide settings script..."
+              Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/scripts/hide_granular_settings.sh -OutFile hide_granular_settings.sh
+              Write-Host "Running script to permanently hide selected settings tabs..."
+              bash hide_granular_settings.sh
               Write-Host "✅ Granular settings permanently hidden in source code"
             } else {
               Write-Host "ℹ️  SETTINGS CONTROL: NOT ENABLED - All settings UI will remain accessible"
