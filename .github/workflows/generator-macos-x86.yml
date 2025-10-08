@@ -532,7 +532,11 @@ jobs:
           echo "=== DISABLE SETTINGS CHECK ==="
           echo "Custom config content: ${{ inputs.custom }}"
           
-          if [[ "${{ inputs.custom }}" != "" && "${{ inputs.custom }}" == *"disable-settings"* && "${{ inputs.custom }}" == *"Y"* ]]; then
+          # Decode base64 and check for disable-settings: Y
+          DECODED_CONFIG=$(echo "${{ inputs.custom }}" | base64 -d 2>/dev/null || echo "{}")
+          echo "Decoded config: $DECODED_CONFIG"
+          
+          if echo "$DECODED_CONFIG" | grep -q '"disable-settings"[[:space:]]*:[[:space:]]*"Y"'; then
             echo "✅ DISABLE SETTINGS: ENABLED - Applying patch to hide settings UI"
             echo "Downloading disable settings patch..."
             wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/disableSettings.diff -O disableSettings.diff

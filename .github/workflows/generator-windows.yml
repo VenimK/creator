@@ -505,15 +505,24 @@ jobs:
           Write-Host "=== DISABLE SETTINGS CHECK ==="
           Write-Host "Custom config content: ${{ inputs.custom }}"
           
-          if ("${{ inputs.custom }}" -ne "" -and "${{ inputs.custom }}".Contains("disable-settings") -and "${{ inputs.custom }}".Contains("Y")) {
-            Write-Host "✅ DISABLE SETTINGS: ENABLED - Applying patch to hide settings UI"
-            Write-Host "Downloading disable settings patch..."
-            Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/disableSettings.diff -OutFile disableSettings.diff
-            Write-Host "Applying patch to source code..."
-            git apply disableSettings.diff
-            Write-Host "✅ Settings UI successfully disabled in build"
-          } else {
-            Write-Host "ℹ️  DISABLE SETTINGS: NOT ENABLED - Settings UI will remain accessible"
+          # Decode base64 and check for disable-settings: Y
+          try {
+            $decodedBytes = [System.Convert]::FromBase64String("${{ inputs.custom }}")
+            $decodedConfig = [System.Text.Encoding]::UTF8.GetString($decodedBytes)
+            Write-Host "Decoded config: $decodedConfig"
+            
+            if ($decodedConfig -match '"disable-settings"\s*:\s*"Y"') {
+              Write-Host "✅ DISABLE SETTINGS: ENABLED - Applying patch to hide settings UI"
+              Write-Host "Downloading disable settings patch..."
+              Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/disableSettings.diff -OutFile disableSettings.diff
+              Write-Host "Applying patch to source code..."
+              git apply disableSettings.diff
+              Write-Host "✅ Settings UI successfully disabled in build"
+            } else {
+              Write-Host "ℹ️  DISABLE SETTINGS: NOT ENABLED - Settings UI will remain accessible"
+            }
+          } catch {
+            Write-Host "ℹ️  DISABLE SETTINGS: ERROR DECODING CONFIG - Settings UI will remain accessible"
           }
           Write-Host "=== DISABLE SETTINGS CHECK END ==="
 
