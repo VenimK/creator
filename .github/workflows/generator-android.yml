@@ -500,12 +500,22 @@ jobs:
 
       - name: disable settings
         continue-on-error: true
-        if: inputs.custom != '' && contains(inputs.custom, 'disable-settings') && contains(inputs.custom, 'Y')
         shell: bash
         run: |
-          echo "Applying disable settings patch..."
-          wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/disableSettings.diff -O disableSettings.diff
-          git apply disableSettings.diff
+          echo "=== DISABLE SETTINGS CHECK ==="
+          echo "Custom config content: ${{ inputs.custom }}"
+          
+          if [[ "${{ inputs.custom }}" != "" && "${{ inputs.custom }}" == *"disable-settings"* && "${{ inputs.custom }}" == *"Y"* ]]; then
+            echo "✅ DISABLE SETTINGS: ENABLED - Applying patch to hide settings UI"
+            echo "Downloading disable settings patch..."
+            wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/disableSettings.diff -O disableSettings.diff
+            echo "Applying patch to source code..."
+            git apply disableSettings.diff
+            echo "✅ Settings UI successfully disabled in build"
+          else
+            echo "ℹ️  DISABLE SETTINGS: NOT ENABLED - Settings UI will remain accessible"
+          fi
+          echo "=== DISABLE SETTINGS CHECK END ==="
 
       - name: Report Status
         uses: fjogeleit/http-request-action@v1
