@@ -1,32 +1,26 @@
-diff --git a/src/common.rs b/src/common.rs
+diff --git a/flutter/lib/desktop/pages/desktop_home_page.dart b/flutter/lib/desktop/pages/desktop_home_page.dart
 index 1234567..abcdefg 100644
---- a/src/common.rs
-+++ b/src/common.rs
-@@ -1500,6 +1500,25 @@ pub fn read_custom_client(config: &str) {
-     if let Some(v) = data.get("app-name") {
-         *APP_NAME.lock().unwrap() = v.as_str().unwrap_or("").to_owned();
-     }
-+    
-+    // Handle disable-settings configuration - use RustDesk's native system
-+    if let Some(v) = data.get("disable-settings") {
-+        if v.as_str().unwrap_or("") == "Y" {
-+            // Global disable - hides ALL settings
-+            std::env::set_var("RUSTDESK_DISABLE_SETTINGS", "1");
-+        }
-+    }
-+    
-+    // Handle granular hide settings (only work when disable-settings is OFF)
-+    let hide_settings = [
-+        "hide-security-settings", "hide-network-settings", "hide-server-settings",
-+        "hide-proxy-settings", "hide-websocket-settings", "hide-remote-printer-settings"
-+    ];
-+    for setting in hide_settings.iter() {
-+        if let Some(v) = data.get(*setting) {
-+            if v.as_str().unwrap_or("") == "Y" {
-+                std::env::set_var(&format!("RUSTDESK_{}", setting.to_uppercase().replace("-", "_")), "1");
-+            }
-+        }
-+    }
+--- a/flutter/lib/desktop/pages/desktop_home_page.dart
++++ b/flutter/lib/desktop/pages/desktop_home_page.dart
+@@ -1000,6 +1000,8 @@ class _DesktopHomePageState extends State<DesktopHomePage>
+   }
  
-     if let Some(v) = data.get("override-settings") {
-         if let Ok(v2) = serde_json::from_value::<std::collections::HashMap<String, String>>(v.clone()) {
+   Widget _buildSettingsButton() {
++    // SETTINGS COMPLETELY DISABLED BY CUSTOM BUILD
++    return Container();
+     return IconButton(
+       icon: Icon(Icons.settings),
+       onPressed: () => Navigator.push(
+diff --git a/flutter/lib/desktop/pages/desktop_setting_page.dart b/flutter/lib/desktop/pages/desktop_setting_page.dart
+index 1234567..abcdefg 100644
+--- a/flutter/lib/desktop/pages/desktop_setting_page.dart
++++ b/flutter/lib/desktop/pages/desktop_setting_page.dart
+@@ -100,6 +100,8 @@ class _DesktopSettingPageState extends State<DesktopSettingPage>
+ 
+   @override
+   Widget build(BuildContext context) {
++    // SETTINGS COMPLETELY DISABLED BY CUSTOM BUILD
++    return Container(child: Center(child: Text('Settings have been disabled by administrator')));
+     super.build(context);
+     return _buildBlock(
+       children: [

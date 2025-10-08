@@ -520,12 +520,11 @@ jobs:
               git apply disableSettings.diff
               Write-Host "✅ All settings UI successfully disabled in build"
             } elseif ($decodedConfig -match '"hide-(security|network|server|proxy|websocket|remote-printer)-settings"\s*:\s*"Y"') {
-              Write-Host "✅ GRANULAR HIDE SETTINGS: ENABLED - Applying patch for selective settings control"
-              Write-Host "Downloading disable settings patch..."
-              Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/disableSettings.diff -OutFile disableSettings.diff
-              Write-Host "Applying patch to source code..."
-              git apply disableSettings.diff
-              Write-Host "✅ Granular settings control successfully applied in build"
+              Write-Host "✅ GRANULAR HIDE SETTINGS: DETECTED"
+              Write-Host "Settings to hide:"
+              $decodedConfig | Select-String -Pattern '"hide-[a-z-]+"\s*:\s*"Y"' -AllMatches | ForEach-Object { $_.Matches.Value }
+              Write-Host "ℹ️  RustDesk will process these settings natively through its configuration system"
+              Write-Host "✅ No patch needed - RustDesk native support will handle granular settings"
             } else {
               Write-Host "ℹ️  SETTINGS CONTROL: NOT ENABLED - All settings UI will remain accessible"
             }
