@@ -517,17 +517,27 @@ jobs:
             echo "Applying patch to source code..."
             git apply disableSettings.diff
             echo "✅ All settings UI successfully disabled in build"
-          elif echo "$DECODED_CONFIG" | grep -qE '"hide-(security|network|server|proxy|websocket|remote-printer)-settings"[[:space:]]*:[[:space:]]*"Y"'; then
-            echo "✅ GRANULAR HIDE SETTINGS: DETECTED"
-            echo "Settings to hide:"
-            echo "$DECODED_CONFIG" | grep -oE '"hide-[a-z-]+"\s*:\s*"Y"' || true
+          elif echo "$DECODED_CONFIG" | grep -qE '"hide-(security|network|remote-printer)-settings"[[:space:]]*:[[:space:]]*"Y"'; then
+            echo "✅ GRANULAR TAB HIDING: DETECTED"
+            echo "Settings tabs to hide:"
+            echo "$DECODED_CONFIG" | grep -oE '"hide-(security|network|remote-printer)-settings"\s*:\s*"Y"' || true
             echo "Downloading hide settings script..."
             wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/scripts/hide_granular_settings.sh -O hide_granular_settings.sh
             chmod +x hide_granular_settings.sh
             echo "Running script to permanently hide selected settings tabs..."
             ./hide_granular_settings.sh
-            echo "✅ Granular settings permanently hidden in source code"
-          else
+            echo "✅ Settings tabs permanently hidden in source code"
+          fi
+          
+          # Check for sub-section hiding (native RustDesk support, no patching needed)
+          if echo "$DECODED_CONFIG" | grep -qE '"hide-(server|proxy|websocket)-settings"[[:space:]]*:[[:space:]]*"Y"'; then
+            echo "✅ GRANULAR SUB-SECTION HIDING: DETECTED"
+            echo "Sub-sections to hide within Network tab:"
+            echo "$DECODED_CONFIG" | grep -oE '"hide-(server|proxy|websocket)-settings"\s*:\s*"Y"' || true
+            echo "ℹ️  RustDesk will process these natively - no source code modification needed"
+          fi
+          
+          if ! echo "$DECODED_CONFIG" | grep -qE '"(disable|hide)-[a-z-]+-settings"[[:space:]]*:[[:space:]]*"Y"'; then
             echo "ℹ️  SETTINGS CONTROL: NOT ENABLED - All settings UI will remain accessible"
           fi
           echo "=== DISABLE SETTINGS CHECK END ==="

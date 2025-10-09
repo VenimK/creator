@@ -519,16 +519,26 @@ jobs:
               Write-Host "Applying patch to source code..."
               git apply disableSettings.diff
               Write-Host "✅ All settings UI successfully disabled in build"
-            } elseif ($decodedConfig -match '"hide-(security|network|server|proxy|websocket|remote-printer)-settings"\s*:\s*"Y"') {
-              Write-Host "✅ GRANULAR HIDE SETTINGS: DETECTED"
-              Write-Host "Settings to hide:"
-              $decodedConfig | Select-String -Pattern '"hide-[a-z-]+"\s*:\s*"Y"' -AllMatches | ForEach-Object { $_.Matches.Value }
+            } elseif ($decodedConfig -match '"hide-(security|network|remote-printer)-settings"\s*:\s*"Y"') {
+              Write-Host "✅ GRANULAR TAB HIDING: DETECTED"
+              Write-Host "Settings tabs to hide:"
+              $decodedConfig | Select-String -Pattern '"hide-(security|network|remote-printer)-settings"\s*:\s*"Y"' -AllMatches | ForEach-Object { $_.Matches.Value }
               Write-Host "Downloading hide settings script..."
               Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/scripts/hide_granular_settings.sh -OutFile hide_granular_settings.sh
               Write-Host "Running script to permanently hide selected settings tabs..."
               bash hide_granular_settings.sh
-              Write-Host "✅ Granular settings permanently hidden in source code"
-            } else {
+              Write-Host "✅ Settings tabs permanently hidden in source code"
+            }
+            
+            # Check for sub-section hiding (native RustDesk support, no patching needed)
+            if ($decodedConfig -match '"hide-(server|proxy|websocket)-settings"\s*:\s*"Y"') {
+              Write-Host "✅ GRANULAR SUB-SECTION HIDING: DETECTED"
+              Write-Host "Sub-sections to hide within Network tab:"
+              $decodedConfig | Select-String -Pattern '"hide-(server|proxy|websocket)-settings"\s*:\s*"Y"' -AllMatches | ForEach-Object { $_.Matches.Value }
+              Write-Host "ℹ️  RustDesk will process these natively - no source code modification needed"
+            }
+            
+            if ($decodedConfig -notmatch '"(disable|hide)-[a-z-]+-settings"\s*:\s*"Y"') {
               Write-Host "ℹ️  SETTINGS CONTROL: NOT ENABLED - All settings UI will remain accessible"
             }
           } catch {
