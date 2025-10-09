@@ -35,6 +35,30 @@ content = re.sub(
     flags=re.MULTILINE | re.DOTALL
 )
 
+# Replace Display Settings block
+content = re.sub(
+    r'(\s+)if \(!bind\.isIncomingOnly\(\)\)\s+SettingsTabKey\.display,',
+    r'\1// DISPLAY SETTINGS PERMANENTLY HIDDEN\n\1// if (!bind.isIncomingOnly())\n\1//   SettingsTabKey.display,',
+    content,
+    flags=re.MULTILINE | re.DOTALL
+)
+
+# Replace Account Settings block
+content = re.sub(
+    r'(\s+)if \(!bind\.isDisableAccount\(\)\)\s+SettingsTabKey\.account,',
+    r'\1// ACCOUNT SETTINGS PERMANENTLY HIDDEN\n\1// if (!bind.isDisableAccount())\n\1//   SettingsTabKey.account,',
+    content,
+    flags=re.MULTILINE | re.DOTALL
+)
+
+# Replace Plugin Settings block
+content = re.sub(
+    r'(\s+)if \(!isWeb &&\s+!bind\.isIncomingOnly\(\) &&\s+bind\.pluginFeatureIsEnabled\(\)\)\s+SettingsTabKey\.plugin,',
+    r'\1// PLUGIN SETTINGS PERMANENTLY HIDDEN\n\1// if (!isWeb && !bind.isIncomingOnly() && bind.pluginFeatureIsEnabled())\n\1//   SettingsTabKey.plugin,',
+    content,
+    flags=re.MULTILINE | re.DOTALL
+)
+
 # Replace Printer Settings block
 content = re.sub(
     r'(\s+)if \(isWindows &&\s+bind\.mainGetBuildinOption\(key: kOptionHideRemotePrinterSetting\) != \'Y\'\)\s+SettingsTabKey\.printer,',

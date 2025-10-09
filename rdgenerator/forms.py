@@ -37,13 +37,17 @@ class GenerateForm(forms.Form):
         ('settingsGranular', 'Hide specific settings (granular control)')
     ], initial='settingsY')
     
-    # Granular hide settings options
+    # Granular hide settings options - Tabs
     hideSecuritySettings = forms.BooleanField(label="Hide Security Settings", initial=False, required=False, help_text="Hide security/safety settings tab")
     hideNetworkSettings = forms.BooleanField(label="Hide Network Settings", initial=False, required=False, help_text="Hide network settings tab (but allow proxy if proxy not hidden)")
+    hideDisplaySettings = forms.BooleanField(label="Hide Display Settings", initial=False, required=False, help_text="Hide display quality and codec settings tab")
+    hideAccountSettings = forms.BooleanField(label="Hide Account Settings", initial=False, required=False, help_text="Hide account login and address book tab")
+    hidePluginSettings = forms.BooleanField(label="Hide Plugin Settings", initial=False, required=False, help_text="Hide plugin management tab")
+    hideRemotePrinterSettings = forms.BooleanField(label="Hide Remote Printer Settings", initial=False, required=False, help_text="Hide remote printer settings")
+    # Granular hide settings options - Sub-sections
     hideServerSettings = forms.BooleanField(label="Hide Server Settings", initial=False, required=False, help_text="Hide server configuration settings")
     hideProxySettings = forms.BooleanField(label="Hide Proxy Settings", initial=False, required=False, help_text="Hide proxy configuration settings")
     hideWebsocketSettings = forms.BooleanField(label="Hide Websocket Settings", initial=False, required=False, help_text="Hide websocket settings")
-    hideRemotePrinterSettings = forms.BooleanField(label="Hide Remote Printer Settings", initial=False, required=False, help_text="Hide remote printer settings")
 
     #Custom Server
     serverIP = forms.CharField(label="Host", required=False)

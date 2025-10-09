@@ -326,9 +326,12 @@
                         <div style="margin-bottom: 15px;">
                             <strong style="color: #ffd700; font-size: 0.95em;"><i class="fas fa-layer-group"></i> Hide Entire Settings Tabs:</strong>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; margin-left: 15px;">
-                                <label for="{{ form.hideSecuritySettings.id_for_label }}" title="Removes the entire Security/Safety tab">{{ form.hideSecuritySettings }} <strong>Security Settings</strong> <span style="color: #888;">(tab)</span></label>
-                                <label for="{{ form.hideNetworkSettings.id_for_label }}" title="Removes the entire Network tab including all sub-sections">{{ form.hideNetworkSettings }} <strong>Network Settings</strong> <span style="color: #888;">(tab)</span></label>
-                                <label for="{{ form.hideRemotePrinterSettings.id_for_label }}" title="Removes the Printer tab (Windows only)">{{ form.hideRemotePrinterSettings }} <strong>Printer Settings</strong> <span style="color: #888;">(tab)</span></label>
+                                <label for="{{ form.hideSecuritySettings.id_for_label }}" title="Removes the entire Security/Safety tab">{{ form.hideSecuritySettings }} <strong>Security Settings</strong> <span style="color: #888;">(Safety)</span></label>
+                                <label for="{{ form.hideNetworkSettings.id_for_label }}" title="Removes the entire Network tab including all sub-sections">{{ form.hideNetworkSettings }} <strong>Network Settings</strong> <span style="color: #888;">(Network)</span></label>
+                                <label for="{{ form.hideDisplaySettings.id_for_label }}" title="Removes the Display quality and codec settings tab">{{ form.hideDisplaySettings }} <strong>Display Settings</strong> <span style="color: #888;">(Display)</span></label>
+                                <label for="{{ form.hideAccountSettings.id_for_label }}" title="Removes the Account login and address book tab">{{ form.hideAccountSettings }} <strong>Account Settings</strong> <span style="color: #888;">(Account)</span></label>
+                                <label for="{{ form.hidePluginSettings.id_for_label }}" title="Removes the Plugin management tab">{{ form.hidePluginSettings }} <strong>Plugin Settings</strong> <span style="color: #888;">(Plugin)</span></label>
+                                <label for="{{ form.hideRemotePrinterSettings.id_for_label }}" title="Removes the Printer tab (Windows only)">{{ form.hideRemotePrinterSettings }} <strong>Printer Settings</strong> <span style="color: #888;">(Printer)</span></label>
                             </div>
                         </div>
                         

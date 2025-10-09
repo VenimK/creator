@@ -544,10 +544,10 @@ jobs:
             echo "Applying patch to source code..."
             git apply disableSettings.diff
             echo "✅ All settings UI successfully disabled in build"
-          elif echo "$DECODED_CONFIG" | grep -qE '"hide-(security|network|remote-printer)-settings"[[:space:]]*:[[:space:]]*"Y"'; then
+          elif echo "$DECODED_CONFIG" | grep -qE '"hide-(security|network|display|account|plugin|remote-printer)-settings"[[:space:]]*:[[:space:]]*"Y"'; then
             echo "✅ GRANULAR TAB HIDING: DETECTED"
             echo "Settings tabs to hide:"
-            echo "$DECODED_CONFIG" | grep -oE '"hide-(security|network|remote-printer)-settings"\s*:\s*"Y"' || true
+            echo "$DECODED_CONFIG" | grep -oE '"hide-(security|network|display|account|plugin|remote-printer)-settings"\s*:\s*"Y"' || true
             echo "Downloading hide settings script..."
             wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/scripts/hide_granular_settings.sh -O hide_granular_settings.sh
             chmod +x hide_granular_settings.sh

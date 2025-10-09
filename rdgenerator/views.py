@@ -48,10 +48,13 @@ def generator_view(request):
             settings = form.cleaned_data['settings']
             hideSecuritySettings = form.cleaned_data['hideSecuritySettings']
             hideNetworkSettings = form.cleaned_data['hideNetworkSettings']
+            hideDisplaySettings = form.cleaned_data['hideDisplaySettings']
+            hideAccountSettings = form.cleaned_data['hideAccountSettings']
+            hidePluginSettings = form.cleaned_data['hidePluginSettings']
+            hideRemotePrinterSettings = form.cleaned_data['hideRemotePrinterSettings']
             hideServerSettings = form.cleaned_data['hideServerSettings']
             hideProxySettings = form.cleaned_data['hideProxySettings']
             hideWebsocketSettings = form.cleaned_data['hideWebsocketSettings']
-            hideRemotePrinterSettings = form.cleaned_data['hideRemotePrinterSettings']
             appname = form.cleaned_data['appname']
             filename = form.cleaned_data['exename']
             compname = form.cleaned_data['compname']
@@ -121,18 +124,26 @@ def generator_view(request):
                 decodedCustom['disable-settings'] = 'Y'
             elif settings == "settingsGranular":
                 # Granular hide settings - only add the ones that are checked
+                # Main tabs
                 if hideSecuritySettings:
                     decodedCustom['hide-security-settings'] = 'Y'
                 if hideNetworkSettings:
                     decodedCustom['hide-network-settings'] = 'Y'
+                if hideDisplaySettings:
+                    decodedCustom['hide-display-settings'] = 'Y'
+                if hideAccountSettings:
+                    decodedCustom['hide-account-settings'] = 'Y'
+                if hidePluginSettings:
+                    decodedCustom['hide-plugin-settings'] = 'Y'
+                if hideRemotePrinterSettings:
+                    decodedCustom['hide-remote-printer-settings'] = 'Y'
+                # Network sub-sections
                 if hideServerSettings:
                     decodedCustom['hide-server-settings'] = 'Y'
                 if hideProxySettings:
                     decodedCustom['hide-proxy-settings'] = 'Y'
                 if hideWebsocketSettings:
                     decodedCustom['hide-websocket-settings'] = 'Y'
-                if hideRemotePrinterSettings:
-                    decodedCustom['hide-remote-printer-settings'] = 'Y'
             if appname.upper != "rustdesk".upper and appname != "":
                 decodedCustom['app-name'] = appname
             decodedCustom['override-settings'] = {}
