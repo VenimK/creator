@@ -335,9 +335,9 @@
                         <div style="margin-bottom: 15px;">
                             <strong style="color: #87ceeb; font-size: 0.95em;"><i class="fas fa-list"></i> Hide Sub-Sections Within Network Tab:</strong>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; margin-left: 15px;">
-                                <label for="{{ form.hideServerSettings.id_for_label }}" title="Hides only the relay server configuration section">{{ form.hideServerSettings }} Server Settings <span style="color: #888;">(section)</span></label>
-                                <label for="{{ form.hideProxySettings.id_for_label }}" title="Hides only the proxy configuration section">{{ form.hideProxySettings }} Proxy Settings <span style="color: #888;">(section)</span></label>
-                                <label for="{{ form.hideWebsocketSettings.id_for_label }}" title="Hides only the websocket settings section">{{ form.hideWebsocketSettings }} Websocket Settings <span style="color: #888;">(section)</span></label>
+                                <label for="{{ form.hideServerSettings.id_for_label }}" title="Hides the ID/Relay server configuration input fields">{{ form.hideServerSettings }} <strong>Server Settings</strong> <span style="color: #888;">(ID/Relay)</span></label>
+                                <label for="{{ form.hideProxySettings.id_for_label }}" title="Hides the proxy configuration input fields">{{ form.hideProxySettings }} <strong>Proxy Settings</strong> <span style="color: #888;">(HTTP/SOCKS5)</span></label>
+                                <label for="{{ form.hideWebsocketSettings.id_for_label }}" title="Hides the websocket settings input fields">{{ form.hideWebsocketSettings }} <strong>Websocket Settings</strong> <span style="color: #888;">(Allow WS)</span></label>
                             </div>
                         </div>
                         

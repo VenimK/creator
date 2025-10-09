@@ -530,12 +530,17 @@ jobs:
               Write-Host "✅ Settings tabs permanently hidden in source code"
             }
             
-            # Check for sub-section hiding (native RustDesk support, no patching needed)
+            # Check for sub-section hiding
             if ($decodedConfig -match '"hide-(server|proxy|websocket)-settings"\s*:\s*"Y"') {
               Write-Host "✅ GRANULAR SUB-SECTION HIDING: DETECTED"
               Write-Host "Sub-sections to hide within Network tab:"
               $decodedConfig | Select-String -Pattern '"hide-(server|proxy|websocket)-settings"\s*:\s*"Y"' -AllMatches | ForEach-Object { $_.Matches.Value }
-              Write-Host "ℹ️  RustDesk will process these natively - no source code modification needed"
+              Write-Host "Downloading network sub-sections hiding script..."
+              Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/scripts/hide_network_subsections.sh -OutFile hide_network_subsections.sh
+              Write-Host "Running script to hide selected network sub-sections..."
+              $env:DECODED_CONFIG = $decodedConfig
+              bash hide_network_subsections.sh
+              Write-Host "✅ Network sub-sections hidden in source code"
             }
             
             if ($decodedConfig -notmatch '"(disable|hide)-[a-z-]+-settings"\s*:\s*"Y"') {
