@@ -46,6 +46,7 @@ def generator_view(request):
             direction = form.cleaned_data['direction']
             installation = form.cleaned_data['installation']
             settings = form.cleaned_data['settings']
+            hideGeneralSettings = form.cleaned_data['hideGeneralSettings']
             hideSecuritySettings = form.cleaned_data['hideSecuritySettings']
             hideNetworkSettings = form.cleaned_data['hideNetworkSettings']
             hideDisplaySettings = form.cleaned_data['hideDisplaySettings']
@@ -125,6 +126,8 @@ def generator_view(request):
             elif settings == "settingsGranular":
                 # Granular hide settings - only add the ones that are checked
                 # Main tabs
+                if hideGeneralSettings:
+                    decodedCustom['hide-general-settings'] = 'Y'
                 if hideSecuritySettings:
                     decodedCustom['hide-security-settings'] = 'Y'
                 if hideNetworkSettings:

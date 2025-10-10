@@ -519,10 +519,10 @@ jobs:
               Write-Host "Applying patch to source code..."
               git apply disableSettings.diff
               Write-Host "✅ All settings UI successfully disabled in build"
-            } elseif ($decodedConfig -match '"hide-(security|network|display|account|plugin|remote-printer)-settings"\s*:\s*"Y"') {
+            } elseif ($decodedConfig -match '"hide-(general|security|network|display|account|plugin|remote-printer)-settings"\s*:\s*"Y"') {
               Write-Host "✅ GRANULAR TAB HIDING: DETECTED"
               Write-Host "Settings tabs to hide:"
-              $decodedConfig | Select-String -Pattern '"hide-(security|network|display|account|plugin|remote-printer)-settings"\s*:\s*"Y"' -AllMatches | ForEach-Object { $_.Matches.Value }
+              $decodedConfig | Select-String -Pattern '"hide-(general|security|network|display|account|plugin|remote-printer)-settings"\s*:\s*"Y"' -AllMatches | ForEach-Object { $_.Matches.Value }
               Write-Host "Downloading hide settings script..."
               Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/scripts/hide_granular_settings.sh -OutFile hide_granular_settings.sh
               Write-Host "Running script to permanently hide selected settings tabs..."

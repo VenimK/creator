@@ -38,6 +38,7 @@ class GenerateForm(forms.Form):
     ], initial='settingsY')
     
     # Granular hide settings options - Tabs
+    hideGeneralSettings = forms.BooleanField(label="Hide General Settings", initial=False, required=False, help_text="Hide general settings tab (theme, language, etc.)")
     hideSecuritySettings = forms.BooleanField(label="Hide Security Settings", initial=False, required=False, help_text="Hide security/safety settings tab")
     hideNetworkSettings = forms.BooleanField(label="Hide Network Settings", initial=False, required=False, help_text="Hide network settings tab (but allow proxy if proxy not hidden)")
     hideDisplaySettings = forms.BooleanField(label="Hide Display Settings", initial=False, required=False, help_text="Hide display quality and codec settings tab")

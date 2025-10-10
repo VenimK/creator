@@ -326,6 +326,7 @@
                         <div style="margin-bottom: 15px;">
                             <strong style="color: #ffd700; font-size: 0.95em;"><i class="fas fa-layer-group"></i> Hide Entire Settings Tabs:</strong>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; margin-left: 15px;">
+                                <label for="{{ form.hideGeneralSettings.id_for_label }}" title="Removes the General settings tab (theme, language, etc.)">{{ form.hideGeneralSettings }} <strong>General Settings</strong> <span style="color: #888;">(General)</span></label>
                                 <label for="{{ form.hideSecuritySettings.id_for_label }}" title="Removes the entire Security/Safety tab">{{ form.hideSecuritySettings }} <strong>Security Settings</strong> <span style="color: #888;">(Safety)</span></label>
                                 <label for="{{ form.hideNetworkSettings.id_for_label }}" title="Removes the entire Network tab including all sub-sections">{{ form.hideNetworkSettings }} <strong>Network Settings</strong> <span style="color: #888;">(Network)</span></label>
                                 <label for="{{ form.hideDisplaySettings.id_for_label }}" title="Removes the Display quality and codec settings tab">{{ form.hideDisplaySettings }} <strong>Display Settings</strong> <span style="color: #888;">(Display)</span></label>

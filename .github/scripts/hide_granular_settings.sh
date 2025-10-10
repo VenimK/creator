@@ -19,6 +19,14 @@ file_path = "flutter/lib/desktop/pages/desktop_setting_page.dart"
 with open(file_path, 'r') as f:
     content = f.read()
 
+# Replace General Settings block
+content = re.sub(
+    r'(\s+)SettingsTabKey\.general,',
+    r'\1// GENERAL SETTINGS PERMANENTLY HIDDEN\n\1// SettingsTabKey.general,',
+    content,
+    flags=re.MULTILINE | re.DOTALL
+)
+
 # Replace Security Settings block
 content = re.sub(
     r'(\s+)if \(!isWeb &&\s+!bind\.isOutgoingOnly\(\) &&\s+!bind\.isDisableSettings\(\) &&\s+bind\.mainGetBuildinOption\(key: kOptionHideSecuritySetting\) != \'Y\'\)\s+SettingsTabKey\.safety,',
