@@ -382,6 +382,9 @@
                     {{ form.runasadmin }}<br><br>
                     <label for="{{ form.passApproveMode.id_for_label }}">Password Approve mode:</label>
                     {{ form.passApproveMode }}<br><br>
+                    <div id="passwordRequirement" class="password-requirement" style="display: none; background-color: #fff3cd; border: 1px solid #ffc107; padding: 10px; margin: 10px 0; border-radius: 4px; color: #856404;">
+                        ⚠️ To use the hide connection window feature, please set a permanent password.
+                    </div>
                     <label for="{{ form.permanentPassword.id_for_label }}">Set Permanent Password:</label>
                     {{ form.permanentPassword }} *The password is used as default, but can be changed by the client<br><br>
                     
@@ -390,7 +393,9 @@
                     
                     <label for="{{ form.enableDirectIP.id_for_label }}">{{ form.enableDirectIP }} Enable direct IP access</label><br>
                     
-                    <label for="{{ form.autoClose.id_for_label }}">{{ form.autoClose }} Automatically close incoming sessions on user inactivity</label><br>  
+                    <label for="{{ form.autoClose.id_for_label }}">{{ form.autoClose }} Automatically close incoming sessions on user inactivity</label><br>
+                    
+                    <label for="{{ form.hidecm.id_for_label }}">{{ form.hidecm }} Allow hiding the connection window from remote screen.</label><br>
             </div>
         
             <div class="section">
@@ -433,7 +438,6 @@
                 <h2><i class="fas fa-code"></i> Code Changes</h2>
                     <label for="{{ form.cycleMonitor.id_for_label }}">{{ form.cycleMonitor }} Add a button to cycle through available monitors to the minimized toolbar.</label><br>
                     <label for="{{ form.xOffline.id_for_label }}">{{ form.xOffline }} Display an X for offline devices in the addressbook.</label><br>
-                    <label for="{{ form.hidecm.id_for_label }}">{{ form.hidecm }} Allow hiding the connection window from remote screen.</label><br>
                     <label for="{{ form.statussort.id_for_label }}">{{ form.statussort }} Allow sorting by online status.</label><br>
                     <label for="{{ form.removeNewVersionNotif.id_for_label }}">{{ form.removeNewVersionNotif }} Remove notification for new versions.</label><br>
             </div>
@@ -466,6 +470,24 @@
         document.getElementById("{{ form.logofile.id_for_label }}").addEventListener('change', function(event) {
             previewImage(event.target, 'logo-preview');
         });
+
+        // Bryan's JavaScript Logic: Handle hidecm checkbox
+        document.getElementById("{{ form.hidecm.id_for_label }}").addEventListener('change', function() {
+            if (this.checked) {
+                // Show password requirement warning
+                document.getElementById("passwordRequirement").style.display = 'block';
+                // Auto-focus password field
+                document.getElementById("{{ form.permanentPassword.id_for_label }}").focus();
+                // Set approve mode to 'password' (required for hidecm)
+                document.getElementById("{{ form.passApproveMode.id_for_label }}").value = 'password';
+            } else {
+                // Hide warning
+                document.getElementById("passwordRequirement").style.display = 'none';
+                // Reset to password-click
+                document.getElementById("{{ form.passApproveMode.id_for_label }}").value = 'password-click';
+            }
+        });
+        
         function previewImage(input, previewContainerId) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
