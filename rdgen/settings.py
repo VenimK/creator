@@ -21,8 +21,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY','django-insecure-!(t-!f#6g#sr%yfded9(xha)g+=!6craeez^cp+*&bz_7vdk61')
-GHUSER = "VenimK"
-GHBEARER = "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"
+
+# GitHub Configuration - MUST be set as environment variables
+GHUSER = os.environ.get("GHUSER", '')
+GHBEARER = os.environ.get("GHBEARER", '')
 GENURL = os.environ.get("GENURL", '')
 PROTOCOL = os.environ.get("PROTOCOL", 'https')
 REPONAME = os.environ.get("REPONAME", 'creator')
