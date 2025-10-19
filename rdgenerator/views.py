@@ -268,6 +268,13 @@ def generator_view(request):
                 }
             } 
             #print(data)
+            print(f"=== GitHub Workflow Dispatch Debug ===")
+            print(f"URL: {url}")
+            print(f"Platform: {platform}")
+            print(f"Version: {version}")
+            print(f"App Name: {appname}")
+            print(f"UUID: {myuuid}")
+            
             headers = {
                 'Accept':  'application/vnd.github+json',
                 'Content-Type': 'application/json',
@@ -276,11 +283,18 @@ def generator_view(request):
             }
             create_github_run(myuuid)
             response = requests.post(url, json=data, headers=headers)
-            print(response)
+            print(f"GitHub API Response Status: {response.status_code}")
+            print(f"GitHub API Response Body: {response.text}")
+            print(f"=== End Debug ===")
             if response.status_code == 204:
                 return render(request, 'waiting.html', {'filename':filename, 'uuid':myuuid, 'status':"Starting generator...please wait", 'platform':platform})
             else:
-                return JsonResponse({"error": "Something went wrong"})
+                error_detail = response.json() if response.text else {"message": "Unknown error"}
+                return JsonResponse({
+                    "error": "GitHub workflow dispatch failed",
+                    "status_code": response.status_code,
+                    "details": error_detail
+                })
     else:
         form = GenerateForm()
     return render(request, 'generator.html', {'form': form})
