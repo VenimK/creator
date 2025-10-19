@@ -20,7 +20,7 @@ A web-based tool for creating custom RustDesk clients with your own branding and
   - Linux (currently unavailable)
   - Android
 - **Version**: Select RustDesk version
-  - Stable releases (1.3.3 - 1.3.8)
+  - Stable releases (1.3.3 - 1.4.3)
   - Master/Nightly (latest development version, may be unstable)
 
 ### Branding
