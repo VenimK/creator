@@ -649,6 +649,23 @@ jobs:
           sed -i -e "s/RustDesk.app/\"${{ inputs.appname }}.app\"/" build.py
           ./build.py --flutter --hwcodec --unix-file-copy-paste ${{ matrix.job.extra-build-args }}
 
+      - name: Copy custom.txt to app bundle Resources
+        shell: bash
+        run: |
+          APP_PATH="./flutter/build/macos/Build/Products/Release/${{ inputs.appname }}.app"
+          RESOURCES_DIR="$APP_PATH/Contents/Resources"
+          
+          echo "Creating Resources directory if it doesn't exist..."
+          mkdir -p "$RESOURCES_DIR"
+          
+          echo "Copying custom.txt to $RESOURCES_DIR/custom.txt"
+          cp ./rustdesk/custom.txt "$RESOURCES_DIR/custom.txt"
+          
+          echo "Verifying custom.txt in app bundle:"
+          ls -la "$RESOURCES_DIR/custom.txt"
+          echo "Contents of custom.txt:"
+          cat "$RESOURCES_DIR/custom.txt"
+
       - name: Report Status - Post Build
         uses: fjogeleit/http-request-action@v1
         with:
