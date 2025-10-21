@@ -717,6 +717,7 @@ jobs:
       - name: Build msi
         continue-on-error: true
         if: env.UPLOAD_ARTIFACT == 'true'
+        shell: bash
         run: |
           echo "Building MSI with version ${{ env.VERSION }}..."
           mkdir -p ./SignOutput
