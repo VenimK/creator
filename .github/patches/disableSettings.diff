@@ -24,3 +24,29 @@ index 1234567..abcdefg 100644
      super.build(context);
      return _buildBlock(
        children: [
+diff --git a/flutter/lib/mobile/pages/home_page.dart b/flutter/lib/mobile/pages/home_page.dart
+index 1234567..abcdefg 100644
+--- a/flutter/lib/mobile/pages/home_page.dart
++++ b/flutter/lib/mobile/pages/home_page.dart
+@@ -500,6 +500,8 @@ class _HomePageState extends State<HomePage>
+       },
+       child: PopupMenuButton<String>(
+         onSelected: (String value) {
++          // SETTINGS COMPLETELY DISABLED BY CUSTOM BUILD
++          if (value == 'Settings') return;
+           if (value == 'Settings') {
+             Navigator.push(
+               context,
+diff --git a/flutter/lib/mobile/pages/settings_page.dart b/flutter/lib/mobile/pages/settings_page.dart
+index 1234567..abcdefg 100644
+--- a/flutter/lib/mobile/pages/settings_page.dart
++++ b/flutter/lib/mobile/pages/settings_page.dart
+@@ -100,6 +100,8 @@ class _SettingsState extends State<SettingsPage>
+ 
+   @override
+   Widget build(BuildContext context) {
++    // SETTINGS COMPLETELY DISABLED BY CUSTOM BUILD
++    return Scaffold(appBar: AppBar(title: Text('Settings')), body: Center(child: Text('Settings have been disabled by administrator')));
+     return Scaffold(
+       appBar: AppBar(
+         title: Text('Settings'),
