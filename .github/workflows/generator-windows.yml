@@ -718,16 +718,52 @@ jobs:
         continue-on-error: true
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
-          echo "Building MSI (rustdesk.exe must exist)..."
+          echo "Building MSI with version ${{ env.VERSION }}..."
           mkdir -p ./SignOutput
           pushd ./res/msi
-          python preprocess.py --arp -d ../../rustdesk
+          
+          # Try preprocess.py with version parameter
+          python preprocess.py --arp -d ../../rustdesk --version ${{ env.VERSION }} || echo "preprocess.py failed, will create Config.wxi manually"
+          
+          # Check if Config.wxi was created, if not create it manually
+          if [ ! -f "./Package/Config.wxi" ]; then
+            echo "Config.wxi not found, creating manually..."
+            mkdir -p ./Package
+            cat > ./Package/Config.wxi << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <Include>
+            <?define Version="${{ env.VERSION }}" ?>
+            <?define Product="RustDesk" ?>
+            <?define Description="RustDesk Remote Desktop" ?>
+            <?define Manufacturer="Purslane Ltd" ?>
+            <?define ProductLower="rustdesk" ?>
+            <?define RegKeyRoot="Software\RustDesk" ?>
+            <?define BuildDir="../../rustdesk" ?>
+            <?define UpgradeCode="{59C1BC08-0A9A-4A72-8BD4-7B28BD03C00A}" ?>
+          </Include>
+          EOF
+            echo "Config.wxi created successfully:"
+            cat ./Package/Config.wxi
+          else
+            echo "Config.wxi found:"
+            head -n 20 ./Package/Config.wxi
+          fi
+          
           nuget restore msi.sln
           msbuild msi.sln -p:Configuration=Release -p:Platform=x64 /p:TargetVersion=Windows10
-          mv ./Package/bin/x64/Release/en-us/Package.msi ../../SignOutput/rustdesk.msi
-          sha256sum ../../SignOutput/rustdesk.msi
+          
+          if [ -f "./Package/bin/x64/Release/en-us/Package.msi" ]; then
+            mv ./Package/bin/x64/Release/en-us/Package.msi ../../SignOutput/rustdesk.msi
+            cd ../../SignOutput
+            sha256sum rustdesk.msi
+            cd -
+            echo "MSI build complete successfully"
+          else
+            echo "ERROR: MSI file was not generated"
+            exit 1
+          fi
+          
           popd
-          echo "MSI build complete"
 
       - name: Build self-extracted executable
         shell: bash
