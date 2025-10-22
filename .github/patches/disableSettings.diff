@@ -28,25 +28,29 @@ diff --git a/flutter/lib/mobile/pages/home_page.dart b/flutter/lib/mobile/pages/
 index 1234567..abcdefg 100644
 --- a/flutter/lib/mobile/pages/home_page.dart
 +++ b/flutter/lib/mobile/pages/home_page.dart
-@@ -500,6 +500,8 @@ class _HomePageState extends State<HomePage>
-       },
-       child: PopupMenuButton<String>(
-         onSelected: (String value) {
-+          // SETTINGS COMPLETELY DISABLED BY CUSTOM BUILD
-+          if (value == 'Settings') return;
-           if (value == 'Settings') {
-             Navigator.push(
-               context,
+@@ -53,7 +53,9 @@ class HomePageState extends State<HomePage> {
+       _chatPageTabIndex = _pages.length;
+       _pages.addAll([ChatPage(type: ChatPageType.mobileMain), ServerPage()]);
+     }
+-    _pages.add(SettingsPage());
++    // SETTINGS COMPLETELY DISABLED BY CUSTOM BUILD
++    if (!bind.isDisableSettings()) {
++      _pages.add(SettingsPage());
++    }
+   }
 diff --git a/flutter/lib/mobile/pages/settings_page.dart b/flutter/lib/mobile/pages/settings_page.dart
 index 1234567..abcdefg 100644
 --- a/flutter/lib/mobile/pages/settings_page.dart
 +++ b/flutter/lib/mobile/pages/settings_page.dart
-@@ -100,6 +100,8 @@ class _SettingsState extends State<SettingsPage>
+@@ -136,6 +136,11 @@ class _SettingsState extends State<SettingsPage> with WidgetsBindingObserver {
  
    @override
    Widget build(BuildContext context) {
 +    // SETTINGS COMPLETELY DISABLED BY CUSTOM BUILD
-+    return Scaffold(appBar: AppBar(title: Text('Settings')), body: Center(child: Text('Settings have been disabled by administrator')));
-     return Scaffold(
-       appBar: AppBar(
-         title: Text('Settings'),
++    if (bind.isDisableSettings()) {
++      return Scaffold(appBar: AppBar(title: Text(translate("Settings"))), 
++        body: Center(child: Text(translate('Settings have been disabled by your organization'))));
++    }
+     Provider.of<FfiModel>(context);
+     final outgoingOnly = bind.isOutgoingOnly();
+     final incomingOnly = bind.isIncomingOnly();
