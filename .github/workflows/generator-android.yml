@@ -502,11 +502,17 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
-          echo "Modifying server_page.dart to bypass popup countdown..."
-          # Change: int _countdown = bind.isCustomClient() ? 0 : 12;
-          # To:     int _countdown = 0;
+          echo "Modifying server_page.dart to bypass all popups..."
+          
+          # Step 1: Bypass countdown popup
           sed -i -e 's|int _countdown = bind.isCustomClient() ? 0 : 12;|int _countdown = 0;|' ./flutter/lib/mobile/pages/server_page.dart
-          echo "✅ Server page popup bypassed (countdown set to 0)"
+          echo "✅ Countdown popup bypassed"
+          
+          # Step 2: Bypass warning dialog - skip dialog.show() and go directly to startService()
+          # Change the dialog logic to immediately call startService() without showing dialog
+          sed -i -e 's|final res = await parent.target?.dialogManager.show|// Dialog bypassed by build\n          startService();\n          return; // Skip dialog\n          final res = await parent.target?.dialogManager.show|' ./flutter/lib/mobile/pages/server_page.dart
+          
+          echo "✅ All server page popups bypassed"
 
       - name: disable settings
         continue-on-error: true
