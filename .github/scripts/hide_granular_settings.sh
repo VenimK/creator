@@ -1,23 +1,25 @@
 #!/bin/bash
 # Script to permanently hide Security, Network, and Printer settings tabs
+# Works for both Desktop (Windows/macOS) and Mobile (Android/iOS)
 
-FILE="flutter/lib/desktop/pages/desktop_setting_page.dart"
+DESKTOP_FILE="flutter/lib/desktop/pages/desktop_setting_page.dart"
+MOBILE_FILE="flutter/lib/mobile/pages/settings_page.dart"
 
-echo "Modifying $FILE to hide granular settings..."
-
-if [ ! -f "$FILE" ]; then
-    echo "ERROR: $FILE not found!"
-    exit 1
-fi
+echo "=== HIDING GRANULAR SETTINGS ==="
 
 # Use Python for reliable multi-line replacement
 python3 << 'PYTHON_SCRIPT'
 import re
+import os
 
-file_path = "flutter/lib/desktop/pages/desktop_setting_page.dart"
+desktop_file = "flutter/lib/desktop/pages/desktop_setting_page.dart"
+mobile_file = "flutter/lib/mobile/pages/settings_page.dart"
 
-with open(file_path, 'r') as f:
-    content = f.read()
+# Process Desktop file if it exists
+if os.path.exists(desktop_file):
+    print(f"Processing {desktop_file}...")
+    with open(desktop_file, 'r') as f:
+        content = f.read()
 
 # Replace General Settings block
 content = re.sub(
@@ -75,10 +77,46 @@ content = re.sub(
     flags=re.MULTILINE | re.DOTALL
 )
 
-with open(file_path, 'w') as f:
-    f.write(content)
+    with open(desktop_file, 'w') as f:
+        f.write(content)
+    print(f"✅ Desktop settings tabs hidden")
+else:
+    print(f"⚠️  {desktop_file} not found, skipping desktop modifications")
 
-print("✅ Settings tabs successfully hidden")
+# Process Mobile file if it exists
+if os.path.exists(mobile_file):
+    print(f"\nProcessing {mobile_file}...")
+    with open(mobile_file, 'r') as f:
+        mobile_content = f.read()
+    
+    # Mobile uses SettingsList sections, not tabs
+    # Hide sections based on the decoded config flags
+    # The structure is: if (!condition) SettingsSection(...)
+    
+    # For mobile, we comment out entire SettingsSection blocks
+    # General settings section
+    mobile_content = re.sub(
+        r'(\s+)SettingsSection\([^)]*title:[^)]*[\'"]General[\'"][^}]*\}\)',
+        r'\1// GENERAL SETTINGS PERMANENTLY HIDDEN\n\1// SettingsSection(title: "General", ...)',
+        mobile_content,
+        flags=re.DOTALL
+    )
+    
+    # Security settings section
+    mobile_content = re.sub(
+        r'(\s+)if \(!bind\.isOutgoingOnly\(\)\)[^{]*\{[^}]*[\'"]Security[\'"][^}]*\}',
+        r'\1// SECURITY SETTINGS PERMANENTLY HIDDEN\n\1// if (!bind.isOutgoingOnly()) { ... Security section ... }',
+        mobile_content,
+        flags=re.DOTALL
+    )
+    
+    with open(mobile_file, 'w') as f:
+        f.write(mobile_content)
+    print(f"✅ Mobile settings sections hidden")
+else:
+    print(f"⚠️  {mobile_file} not found, skipping mobile modifications")
+
+print("\n✅ Granular settings hiding complete!")
 PYTHON_SCRIPT
 
-echo "Modified file: $FILE"
+echo "=== GRANULAR SETTINGS HIDING COMPLETE ==="
