@@ -502,11 +502,11 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
-          echo "Modifying server_page.dart to hide scam warning popup by default..."
-          # Change the scam warning condition to always be false
-          # This makes it skip showScamWarning() and go directly to serverModel.toggleService()
-          sed -i 's|gFFI.userModel.userName.value.isEmpty &&|false &&|' ./flutter/lib/mobile/pages/server_page.dart
-          echo "✅ Scam warning popup disabled - service starts directly"
+          echo "Modifying server_page.dart to bypass popup countdown..."
+          # Change: int _countdown = bind.isCustomClient() ? 0 : 12;
+          # To:     int _countdown = 0;
+          sed -i -e 's|int _countdown = bind.isCustomClient() ? 0 : 12;|int _countdown = 0;|' ./flutter/lib/mobile/pages/server_page.dart
+          echo "✅ Server page popup bypassed (countdown set to 0)"
 
       - name: disable settings
         continue-on-error: true
