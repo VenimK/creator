@@ -482,9 +482,9 @@ jobs:
             CUSTOM_CONFIG="${{ env.CUSTOM }}"
 
             echo "Using Django-generated custom.txt configuration:"
-            echo "$CUSTOM_CONFIG" > ./flutter/assets/custom.txt
+            echo "$CUSTOM_CONFIG" | base64 -d > ./flutter/assets/custom.txt
 
-            echo "Verifying custom.txt contents:"
+            echo "Verifying custom.txt contents (decoded JSON):"
             cat ./flutter/assets/custom.txt
             echo "Permanent password configuration completed"
           else
