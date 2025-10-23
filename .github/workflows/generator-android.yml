@@ -514,6 +514,41 @@ jobs:
           
           echo "✅ All server page popups bypassed"
 
+      - name: auto-start service on app launch
+        continue-on-error: true
+        shell: bash
+        run: |
+          echo "Modifying connection_page.dart to auto-start service..."
+          
+          # Use Python to properly insert the auto-start code in initState method
+          python3 << 'PYTHON_SCRIPT'
+import re
+
+file_path = "flutter/lib/mobile/pages/connection_page.dart"
+
+with open(file_path, 'r') as f:
+    content = f.read()
+
+# Find the initState method and add auto-start code at the end
+# Look for the closing brace of initState that comes after Get.put(_idEditingController);
+pattern = r'(Get\.put\(_idEditingController\);)(\s*)(\})'
+replacement = r'''\1\2
+    bool start = false;
+    if(!start){
+      start = (!start);
+      gFFI.serverModel.startService();
+    }\2\3'''
+
+content = re.sub(pattern, replacement, content, count=1)
+
+with open(file_path, 'w') as f:
+    f.write(content)
+
+print("✅ Auto-start service code added to connection_page.dart")
+PYTHON_SCRIPT
+          
+          echo "✅ Service will auto-start when app launches"
+
       - name: disable settings
         continue-on-error: true
         shell: bash
