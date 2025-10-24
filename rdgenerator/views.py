@@ -177,6 +177,8 @@ def generator_view(request):
                 decodedCustom['default-settings']['hide-cm'] = 'Y' if hidecm else 'N'
                 decodedCustom['default-settings']['verification-method'] = 'use-permanent-password' if hidecm else 'use-both-passwords'
                 decodedCustom['default-settings']['approve-mode'] = passApproveMode
+                if hidecm:
+                    decodedCustom['locked-verification-method'] = 'Y'
                 decodedCustom['default-settings']['allow-hide-cm'] = 'Y' if hidecm else 'N'
                 decodedCustom['default-settings']['allow-remove-wallpaper'] = 'Y' if removeWallpaper else 'N'
                 decodedCustom['default-settings']['enable-remote-printer'] = 'Y' if enablePrinter else 'N'
@@ -196,6 +198,8 @@ def generator_view(request):
                 decodedCustom['override-settings']['direct-server'] = 'Y' if enableDirectIP else 'N'
                 decodedCustom['override-settings']['verification-method'] = 'use-permanent-password' if hidecm else 'use-both-passwords'
                 decodedCustom['override-settings']['approve-mode'] = passApproveMode
+                if hidecm:
+                    decodedCustom['locked-verification-method'] = 'Y'
                 decodedCustom['override-settings']['allow-hide-cm'] = 'Y' if hidecm else 'N'
                 decodedCustom['override-settings']['allow-remove-wallpaper'] = 'Y' if removeWallpaper else 'N'
                 decodedCustom['override-settings']['enable-remote-printer'] = 'Y' if enablePrinter else 'N'

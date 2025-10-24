@@ -493,6 +493,30 @@ jobs:
 
           echo "=== PERMANENT PASSWORD STEP END ==="
 
+      - name: lock-verification-method
+        continue-on-error: true
+        shell: bash
+        run: |
+          echo "=== VERIFICATION METHOD LOCK CHECK ==="
+          
+          # Decode base64 and check for locked-verification-method flag
+          DECODED_CONFIG=$(echo "${{ env.CUSTOM }}" | base64 -d 2>/dev/null || echo "{}")
+          echo "Checking for locked verification method..."
+          
+          if echo "$DECODED_CONFIG" | grep -q '"locked-verification-method"[[:space:]]*:[[:space:]]*"Y"'; then
+            echo "✅ LOCKED VERIFICATION METHOD DETECTED"
+            echo "Downloading lockPassword.diff patch..."
+            wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/lockPassword.diff -O lockPassword.diff
+            echo "Applying patch to force permanent password verification..."
+            git apply lockPassword.diff
+            echo "✅ Verification method locked to permanent password only"
+            echo "Users will NOT be able to switch to one-time or both passwords"
+          else
+            echo "ℹ️  Verification method lock NOT enabled - Users can change password method"
+          fi
+          
+          echo "=== VERIFICATION METHOD LOCK CHECK END ==="
+
       - name: removeNewVersionNotif
         continue-on-error: true
         if: fromJson(inputs.extras).removeNewVersionNotif == 'true'
