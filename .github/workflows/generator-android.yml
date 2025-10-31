@@ -426,38 +426,21 @@ jobs:
         if: fromJson(inputs.extras).hidecm == 'true'
         shell: bash
         run: |
-          echo "Applying hide-cm changes directly with sed"
-          if [ -f "flutter/lib/models/server_model.dart" ]; then
-            # Change bool hideCm to bool _hideCm
-            sed -i 's/bool hideCm = false;/bool _hideCm = false;/' flutter/lib/models/server_model.dart
-            # Add getter
-            sed -i '/bool get clipboardOk => _clipboardOk;/a \
-              bool get hideCm => _hideCm;\
-              ' flutter/lib/models/server_model.dart
-            # Uncomment various blocks
-            sed -i 's/\/\*//g' flutter/lib/models/server_model.dart
-            sed -i 's/\*\///g' flutter/lib/models/server_model.dart
-            echo "Modified server_model.dart"
-          else
-            echo "server_model.dart not found"
-          fi
-
-          if [ -f "flutter/lib/main.dart" ]; then
-            # Comment out gFFI.serverModel.hideCm = hide;
-            sed -i 's/gFFI.serverModel.hideCm = hide;/\/\/ gFFI.serverModel.hideCm = hide;/' flutter/lib/main.dart
-            echo "Modified main.dart"
-          else
-            echo "main.dart not found"
-          fi
-
+          echo "Applying hide-cm changes to enable the hide connection manager feature"
+          
+          # Uncomment the hide_cm widget call in desktop_setting_page.dart
           if [ -f "flutter/lib/desktop/pages/desktop_setting_page.dart" ]; then
-            # Uncomment hide_cm button
-            sed -i "s/\/\/ if (usePassword)/if (usePassword)/" flutter/lib/desktop/pages/desktop_setting_page.dart
-            sed -i "s/\/\/   hide_cm(!locked).marginOnly(left: _kContentHSubMargin - 6),/  hide_cm(!locked).marginOnly(left: _kContentHSubMargin - 6),/" flutter/lib/desktop/pages/desktop_setting_page.dart
-            echo "Modified desktop_setting_page.dart"
+            echo "Uncommenting hide_cm widget in desktop_setting_page.dart..."
+            # Uncomment: // if (usePassword)
+            # Uncomment: //   hide_cm(!locked).marginOnly(left: _kContentHSubMargin - 6),
+            sed -i 's|// if (usePassword)$|if (usePassword)|' flutter/lib/desktop/pages/desktop_setting_page.dart
+            sed -i 's|//   hide_cm(!locked).marginOnly(left: _kContentHSubMargin - 6),|  hide_cm(!locked).marginOnly(left: _kContentHSubMargin - 6),|' flutter/lib/desktop/pages/desktop_setting_page.dart
+            echo "✅ Modified desktop_setting_page.dart - hide_cm widget enabled"
           else
-            echo "desktop_setting_page.dart not found"
+            echo "❌ desktop_setting_page.dart not found"
           fi
+          
+          echo "Hide-CM feature enabled successfully"
 
       - name: statussort
         continue-on-error: true
@@ -466,32 +449,39 @@ jobs:
           wget https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/statussort.diff
           git apply statussort.diff
 
-      - name: set-permanent-password
+      - name: create-custom-config
         continue-on-error: true
         shell: bash
         run: |
-          echo "=== PERMANENT PASSWORD STEP START ==="
-          echo "Raw custom config: ${{ inputs.custom }}"
-
-          # Check if password exists in custom config (Django already added it correctly)
-          if echo '${{ env.CUSTOM }}' | base64 -d | grep -q 'password'; then
-            echo "Found password configuration in custom.txt"
-
-            # The Django backend already added the password to custom.txt correctly
-            # We just need to ensure the file exists during build
-            CUSTOM_CONFIG="${{ env.CUSTOM }}"
-
-            echo "Using Django-generated custom.txt configuration:"
-            echo "$CUSTOM_CONFIG" | base64 -d > ./flutter/assets/custom.txt
-
-            echo "Verifying custom.txt contents (decoded JSON):"
+          echo "=== CUSTOM CONFIG SETUP START ==="
+          
+          # Always create custom.txt if CUSTOM env var exists
+          # This is needed for password, hide-cm, and other custom settings
+          if [ -n "${{ env.CUSTOM }}" ]; then
+            echo "Creating custom.txt with base64-decoded configuration..."
+            mkdir -p ./flutter/assets
+            echo "${{ env.CUSTOM }}" | base64 -d > ./flutter/assets/custom.txt
+            
+            echo "✅ custom.txt created successfully"
+            echo "Configuration contents (decoded JSON):"
             cat ./flutter/assets/custom.txt
-            echo "Permanent password configuration completed"
+            echo ""
+            
+            # Check what features are enabled
+            if echo "${{ env.CUSTOM }}" | base64 -d | grep -q '"password"'; then
+              echo "✅ Permanent password preset detected"
+            fi
+            if echo "${{ env.CUSTOM }}" | base64 -d | grep -q '"locked-verification-method"'; then
+              echo "✅ Locked verification method detected"
+            fi
+            if echo "${{ env.CUSTOM }}" | base64 -d | grep -q '"allow-hide-cm"'; then
+              echo "✅ Hide connection manager settings detected"
+            fi
           else
-            echo "No password configuration found in custom.txt"
+            echo "⚠️  No custom configuration provided"
           fi
-
-          echo "=== PERMANENT PASSWORD STEP END ==="
+          
+          echo "=== CUSTOM CONFIG SETUP END ==="
 
       - name: lock-verification-method
         continue-on-error: true
@@ -620,6 +610,7 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           ANDROID_NDK_ROOT: ${{ steps.setup-ndk.outputs.ndk-path }}
+          RUSTFLAGS: "-C debug-assertions=on"
         run: |
           rustup target add ${{ matrix.job.target }}
           cargo install cargo-ndk --version ${{ env.CARGO_NDK_VERSION }} --locked
