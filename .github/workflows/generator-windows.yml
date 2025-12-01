@@ -286,8 +286,8 @@ jobs:
       - name: allow custom.txt
         continue-on-error: true
         run: |
-          Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/allowCustom.diff -OutFile allowCustom.diff
-          git apply allowCustom.diff
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/allowCustom.py -OutFile allowCustom.py
+          git apply allowCustom.py
           # Remove Setup Server Tip
           Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/removeSetupServerTip.diff -OutFile removeSetupServerTip.diff
           git apply removeSetupServerTip.diff
@@ -552,15 +552,15 @@ jobs:
           Write-Host "=== DISABLE SETTINGS CHECK END ==="
 
 
-      - name: run as admin
-        continue-on-error: true
-        if: ${{ fromJson(inputs.extras).runasadmin == 'true' }}
-        shell: bash
-        run: |
-          sed -i '/<\/compatibility>/a \
-                <security> \
-                  <requestedExecutionLevel level="requireAdministrator" uiAccess="false"/> \
-                </security>' ./flutter/windows/runner/runner.exe.manifest
+      # - name: run as admin
+      #   continue-on-error: true
+      #   if: ${{ fromJson(inputs.extras).runasadmin == 'true' }}
+      #   shell: bash
+      #   run: |
+      #     sed -i '/<\/compatibility>/a \
+      #           <security> \
+      #             <requestedExecutionLevel level="requireAdministrator" uiAccess="false"/> \
+      #           </security>' ./flutter/windows/runner/runner.exe.manifest
           
 
       - name: Report Status

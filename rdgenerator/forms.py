@@ -12,7 +12,7 @@ class GenerateForm(forms.Form):
         ('macos-x86','macOS (x86)')
     ], initial='macos')
     version = forms.ChoiceField(
-        choices=[('master','nightly'),('1.4.3','1.4.3'),('1.4.2','1.4.2'),('1.4.1','1.4.1'),('1.4.0','1.4.0'),('1.3.9','1.3.9'),('1.3.8','1.3.8'),('1.3.7','1.3.7'),('1.3.6','1.3.6'),('1.3.5','1.3.5'),('1.3.4','1.3.4'),('1.3.3','1.3.3')], 
+        choices=[('master','nightly'),('1.4.4','1.4.4'),('1.4.3','1.4.3'),('1.4.2','1.4.2'),('1.4.1','1.4.1'),('1.4.0','1.4.0'),('1.3.9','1.3.9'),('1.3.8','1.3.8'),('1.3.7','1.3.7'),('1.3.6','1.3.6'),('1.3.5','1.3.5'),('1.3.4','1.3.4'),('1.3.3','1.3.3')], 
         initial='1.4.3',
         help_text=mark_safe("If a build fails, let me know. Start a issue on GitHub: <a href='https://github.com/VenimK/creator/issues' style='color: #007bff; font-weight: bold; text-decoration: underline;'>Click here to report an issue</a>")
     )
@@ -73,7 +73,7 @@ class GenerateForm(forms.Form):
     #Security
     passApproveMode = forms.ChoiceField(choices=[('password','Accept sessions via password'),('click','Accept sessions via click'),('password-click','Accepts sessions via both')],initial='password-click')
     permanentPassword = forms.CharField(widget=forms.PasswordInput(), required=False)
-    runasadmin = forms.ChoiceField(choices=[('false','No'),('true','Yes')], initial='false')
+    # runasadmin = forms.ChoiceField(choices=[('false','No'),('true','Yes')], initial='false')
     denyLan = forms.BooleanField(initial=False, required=False)
     enableDirectIP = forms.BooleanField(initial=False, required=False)
     #ipWhitelist = forms.BooleanField(initial=False, required=False)
