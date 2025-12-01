@@ -162,7 +162,12 @@ jobs:
           cp ./flutter/macos/Runner.xcodeproj/project.pbxproj ./flutter/macos/Runner.xcodeproj/project.pbxproj.bak
 
           # Define the bundle identifier consistently
-          BUNDLE_ID="com.carriez.${{ inputs.appname }}"
+          # Sanitize appname for bundle ID (remove spaces, special chars, convert to lowercase)
+          SANITIZED_APPNAME=$(echo "${{ inputs.appname }}" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed 's/[^a-z0-9.-]//g')
+          BUNDLE_ID="com.carriez.${SANITIZED_APPNAME}"
+          echo "Original appname: ${{ inputs.appname }}"
+          echo "Sanitized for bundle ID: ${SANITIZED_APPNAME}"
+          echo "Final bundle ID: ${BUNDLE_ID}"
           
           # Update project.pbxproj
           sed -i '' -e "s/PRODUCT_BUNDLE_IDENTIFIER = .*;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/g" ./flutter/macos/Runner.xcodeproj/project.pbxproj
