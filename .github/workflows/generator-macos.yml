@@ -102,7 +102,7 @@ jobs:
         job:
           - {
               target: aarch64-apple-darwin,
-              os: macos-15,
+              os: macos-latest,
               extra-build-args: "",
               arch: aarch64,
               vcpkg-triplet: arm64-osx,
