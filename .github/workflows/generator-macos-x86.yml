@@ -101,7 +101,7 @@ jobs:
         job:
           - {
               target: x86_64-apple-darwin,
-              os: macos-14,
+              os: macos-15-intel,
               extra-build-args: "",
               arch: x86_64,
               vcpkg-triplet: x64-osx,
