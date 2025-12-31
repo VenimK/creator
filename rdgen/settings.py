@@ -41,7 +41,21 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True            
 
-ALLOWED_HOSTS = ['*']
+#ALLOWED_HOSTS = ['*']
+
+if GENURL:
+    parsed = urlparse(GENURL)
+    host = parsed.hostname
+    if not host:
+        raise ValueError(f"Invalid GENURL: {GENURL}")
+    ALLOWED_HOSTS = [host]
+
+    scheme = parsed.scheme or 'https'
+    port = f":{parsed.port}" if parsed.port else ""
+    auto_origin = f"{scheme}://{host}{port}"
+else:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+    auto_origin = None
 #CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split()
 
 # Application definition
