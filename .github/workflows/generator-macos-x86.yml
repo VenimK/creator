@@ -101,7 +101,7 @@ jobs:
         job:
           - {
               target: x86_64-apple-darwin,
-              os: macos-15-intel,
+              os: macos-14,
               extra-build-args: "",
               arch: x86_64,
               vcpkg-triplet: x64-osx,
@@ -642,6 +642,9 @@ jobs:
           echo -n "${{ inputs.custom }}" | cat > ./rustdesk/custom.txt
 
       - name: Build rustdesk
+        env:
+          MACOSX_DEPLOYMENT_TARGET: "13.0"
+          CGO_ENABLED: "1"
         run: |
           if [ "${{ matrix.job.target }}" = "aarch64-apple-darwin" ]; then
             MIN_MACOS_VERSION="12.3"
