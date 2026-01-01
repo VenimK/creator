@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -48,13 +49,13 @@ if GENURL:
     host = parsed.hostname
     if not host:
         raise ValueError(f"Invalid GENURL: {GENURL}")
-    ALLOWED_HOSTS = [host]
+    ALLOWED_HOSTS = [host, 'creator.nas86.eu']
 
     scheme = parsed.scheme or 'https'
     port = f":{parsed.port}" if parsed.port else ""
     auto_origin = f"{scheme}://{host}{port}"
 else:
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", 'creator.nas86.eu']
     auto_origin = None
 #CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split()
 
