@@ -146,11 +146,20 @@ jobs:
             repository: rustdesk/rustdesk
             submodules: recursive
 
-      - name: Install imagemagick and potrace and nasm and and
+      - name: Install imagemagick and potrace and cmake and gcc and wget and ninja
         shell: bash
         run: |
-          brew install imagemagick potrace nasm cmake gcc wget ninja
+          brew install imagemagick potrace cmake gcc wget ninja
           echo "$(brew --prefix imagemagick)/bin" >> $GITHUB_PATH
+
+      - name: Uninstall old NASM
+        run: brew uninstall nasm || true
+
+      - name: Install newer NASM
+        run: brew install nasm
+
+      - name: Verify NASM version
+        run: nasm -v
 
       - name: Update macOS Info.plist and settings
         continue-on-error: false
@@ -704,11 +713,6 @@ jobs:
           else
               brew install pkg-config
           fi
-
-      - name: Install NASM
-        run: |
-          brew install nasm
-          nasm --version    
 
       - name: Report Status
         uses: fjogeleit/http-request-action@v1
