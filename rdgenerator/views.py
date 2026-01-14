@@ -15,6 +15,8 @@ from .forms import GenerateForm
 from .models import GithubRun
 from PIL import Image
 from urllib.parse import quote
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
 
 def generator_view(request):
     if request.method == 'POST':
@@ -61,6 +63,9 @@ def generator_view(request):
             compname = form.cleaned_data['compname']
             if not compname:
                 compname = "Purslane Ltd"
+            androidappid = form.cleaned_data['androidappid']
+            if not androidappid:
+                androidappid = "com.carriez.flutter_hbb"
             compname = compname.replace("&","\\&")
             permPass = form.cleaned_data['permanentPassword']
             theme = form.cleaned_data['theme']
@@ -235,6 +240,7 @@ def generator_view(request):
             extras['statussort'] = 'true' if statussort else 'false'
             extras['removeNewVersionNotif'] = 'true' if removeNewVersionNotif else 'false'
             extras['compname'] = compname
+            extras['androidappid'] = androidappid
             extras['slogan'] = slogan if slogan else f"Developed By {appname}"
             extra_input = json.dumps(extras)
 

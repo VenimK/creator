@@ -12,7 +12,7 @@ class GenerateForm(forms.Form):
         ('macos-x86','macOS (x86)')
     ], initial='macos')
     version = forms.ChoiceField(
-        choices=[('master','nightly'),('1.4.4','1.4.4'),('1.4.3','1.4.3'),('1.4.2','1.4.2'),('1.4.1','1.4.1'),('1.4.0','1.4.0'),('1.3.9','1.3.9'),('1.3.8','1.3.8'),('1.3.7','1.3.7'),('1.3.6','1.3.6'),('1.3.5','1.3.5'),('1.3.4','1.3.4'),('1.3.3','1.3.3')], 
+        choices=[('master','nightly'),('1.4.5','1.4.5'),('1.4.4','1.4.4'),('1.4.3','1.4.3'),('1.4.2','1.4.2'),('1.4.1','1.4.1'),('1.4.0','1.4.0'),('1.3.9','1.3.9'),('1.3.8','1.3.8'),('1.3.7','1.3.7'),('1.3.6','1.3.6'),('1.3.5','1.3.5'),('1.3.4','1.3.4'),('1.3.3','1.3.3')], 
         initial='1.4.3',
         help_text=mark_safe("If a build fails, let me know. Start a issue on GitHub: <a href='https://github.com/VenimK/creator/issues' style='color: #007bff; font-weight: bold; text-decoration: underline;'>Click here to report an issue</a>")
     )
@@ -36,6 +36,7 @@ class GenerateForm(forms.Form):
         ('settingsN', 'Disable ALL settings (complete lockdown)'),
         ('settingsGranular', 'Hide specific settings (granular control)')
     ], initial='settingsY')
+    androidappid = forms.CharField(label="Custom Android App ID (replaces 'com.carriez.flutter_hbb')", required=False)
     
     # Granular hide settings options - Tabs
     hideGeneralSettings = forms.BooleanField(label="Hide General Settings", initial=False, required=False, help_text="Hide general settings tab (theme, language, etc.)")
