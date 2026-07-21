@@ -292,6 +292,11 @@ jobs:
           Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/removeSetupServerTip.diff -OutFile removeSetupServerTip.diff
           git apply removeSetupServerTip.diff
 
+      - name: Create custom.txt file
+        shell: bash
+        run: |
+          echo "${{ env.CUSTOM }}" | base64 -d > ./rustdesk/custom.txt
+
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v1

@@ -247,6 +247,7 @@
         </p>
     </div>
     <form id="myForm" action="/generator" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
         <div class="save-load-section-container">
             <div class="section">
                 <h2 id="saveLoadTitle">Save/Load Configuration <i class="fas fa-chevron-down"></i></h2>  
@@ -258,23 +259,11 @@
             </div>
         </div>
         {% if form.iconfile.errors %}
-
-
             <ul class="errorlist">
-
-
                 {% for error in form.iconfile.errors %}
-
-
                     <li>{{ error }}</li>
-
-
                 {% endfor %}
-
-
             </ul>
-
-
         {% endif %}
         <div class="platform">
             <h2><i class="fas fa-desktop"></i> Select Platform</h2>

@@ -671,6 +671,22 @@ jobs:
           echo "Contents of custom.txt:"
           cat "$RESOURCES_DIR/custom.txt"
 
+      - name: Create custom.txt file
+        shell: bash
+        run: |
+          echo "${{ env.CUSTOM }}" | base64 -d > ./custom.txt
+          APP_DIR="build/macos/Build/Products/Release/${{ inputs.appname }}.app/Contents/MacOS"
+          if [ -d "$APP_DIR" ]; then
+            cp ./custom.txt "$APP_DIR/custom.txt"
+          else
+            APP_DIR="build/macos/Build/Products/Release/RustDesk.app/Contents/MacOS"
+            if [ -d "$APP_DIR" ]; then
+              cp ./custom.txt "$APP_DIR/custom.txt"
+            fi
+          fi
+          mkdir -p ./flutter/assets
+          cp ./custom.txt ./flutter/assets/custom.txt
+
       - name: Report Status - Post Build
         uses: fjogeleit/http-request-action@v1
         with:

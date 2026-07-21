@@ -31,16 +31,20 @@ SECRET_KEY = os.environ.get('SECRET_KEY','django-insecure-!(t-!f#6g#sr%yfded9(xh
 GHUSER = os.environ.get("GHUSER", '')
 GHBEARER = os.environ.get("GHBEARER", '')
 GENURL = os.environ.get("GENURL", '')
-PROTOCOL = os.environ.get("PROTOCOL", 'https')
+API_TOKEN = os.environ.get("API_TOKEN", '')
+GHBRANCH = os.environ.get("GHBRANCH", 'master')
 REPONAME = os.environ.get("REPONAME", 'creator')
-
+ZIP_PASSWORD = os.environ.get("ZIP_PASSWORD", 'insecure')
+PROTOCOL = os.environ.get("PROTOCOL", 'https')
+SH_SECRET = os.environ.get('SH_SECRET', 'secret')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG_ENV = os.environ.get("DEBUG", "False")
+DEBUG = DEBUG_ENV.lower() in ['true', '1', 't']
 
 #ALLOWED_HOSTS = ['*']
 
@@ -57,7 +61,7 @@ if GENURL:
 else:
     ALLOWED_HOSTS = ["localhost", "127.0.0.1", 'creator.nas86.eu']
     auto_origin = None
-#CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split()
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split()
 
 # Application definition
 
@@ -75,7 +79,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    #'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -153,3 +157,5 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = None
