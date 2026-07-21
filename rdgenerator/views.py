@@ -383,7 +383,7 @@ def update_github_run(request):
         return HttpResponse('Unauthorized', status=401)
     data = json.loads(request.body)
     myuuid = data.get('uuid')
-    mystatus = data.get('status')
+    mystatus = data.get('status', '').lower()
     GithubRun.objects.filter(Q(uuid=myuuid)).update(status=mystatus)
     return HttpResponse('')
 

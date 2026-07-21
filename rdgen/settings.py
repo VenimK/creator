@@ -48,7 +48,10 @@ DEBUG = DEBUG_ENV.lower() in ['true', '1', 't']
 
 #ALLOWED_HOSTS = ['*']
 
-if GENURL:
+_env_hosts = [h for h in os.environ.get('ALLOWED_HOSTS', '').split(',') if h]
+if _env_hosts:
+    ALLOWED_HOSTS = _env_hosts
+elif GENURL:
     parsed = urlparse(GENURL)
     host = parsed.hostname
     if not host:
@@ -61,7 +64,7 @@ if GENURL:
 else:
     ALLOWED_HOSTS = ["localhost", "127.0.0.1", 'creator.nas86.eu']
     auto_origin = None
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split()
+CSRF_TRUSTED_ORIGINS = [o for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if o]
 
 # Application definition
 
