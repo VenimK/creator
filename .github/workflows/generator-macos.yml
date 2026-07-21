@@ -789,6 +789,8 @@ jobs:
 
       - name: Sign macOS app bundle
         if: env.MACOS_P12_BASE64 != ''
+        id: cert_sign
+        continue-on-error: true
         run: |
             cd flutter/build/macos/Build/Products/Release
             # Debug info
@@ -844,6 +846,27 @@ jobs:
             
             # Clean up
             rm certificate.p12 
+
+      - name: Ad-hoc sign macOS app bundle (fallback)
+        if: env.MACOS_P12_BASE64 == '' || steps.cert_sign.outcome == 'failure'
+        run: |
+            cd flutter/build/macos/Build/Products/Release
+            echo "Using ad-hoc signing (no certificate or cert signing failed)"
+            
+            # Rename RustDesk.app to the custom app name first
+            if [ -d "RustDesk.app" ]; then
+              mv "RustDesk.app" "${{ inputs.appname }}.app"
+              echo "Renamed RustDesk.app to ${{ inputs.appname }}.app"
+            fi
+            
+            # Ad-hoc sign all binaries and frameworks
+            find "${{ inputs.appname }}.app" -type f -perm +111 -exec codesign --force --sign - {} \; 2>/dev/null || true
+            find "${{ inputs.appname }}.app/Contents/Frameworks" -type f -not -name ".*" -exec \
+              codesign --force --sign - {} \; 2>/dev/null || true
+            codesign --force --deep --sign - "${{ inputs.appname }}.app"
+            
+            echo "Ad-hoc signing complete"
+            codesign -dv "${{ inputs.appname }}.app" 2>&1 || true
 
       - name: Create DMG
         run: |
