@@ -79,6 +79,7 @@ env:
   UPLOAD_ARTIFACT: 'true'
   SIGN_BASE_URL: "${{ secrets.SIGN_BASE_URL }}"
   STATUS_URL: "${{ secrets.GENURL }}/updategh"
+  CUSTOM: "${{ inputs.custom }}"
 
 
 jobs:
@@ -715,7 +716,7 @@ jobs:
       - name: Create custom.txt file
         shell: bash
         run: |
-          echo -n "${{ inputs.custom }}" | cat > ./rustdesk/custom.txt
+          echo "${{ env.CUSTOM }}" | base64 -d > ./rustdesk/custom.txt
 
       - name: Build self-extracted executable
         shell: bash
