@@ -172,6 +172,7 @@ jobs:
                g++ \
                g++-multilib \
                imagemagick \
+             potrace \
                libayatana-appindicator3-dev \
                libasound2-dev \
                libc6-dev \
