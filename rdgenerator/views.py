@@ -315,7 +315,7 @@ def check_for_file(request):
             'platform': platform
         })
         
-    elif gh_run.status in ['failure', 'cancelled', 'timed_out', 'skipped', 'action_required']:
+    elif gh_run.status in ['failure', 'cancelled', 'timed_out', 'skipped', 'action_required'] or 'fail' in gh_run.status or 'cancel' in gh_run.status:
         return render(request, 'failure.html', {
             'log_url': github_log_url, 
             'filename': filename, 
