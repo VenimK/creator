@@ -751,6 +751,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y libarchive-tools libfuse2
           # set-up appimage-builder
+          sudo pip3 install 'setuptools_scm<8' 'setuptools<70'
           sudo pip3 install git+https://github.com/rustdesk-org/appimage-builder.git
           # run appimage-builder
           pushd appimage
