@@ -186,7 +186,7 @@ jobs:
           
           # Update other Info.plist entries
           sed -i '' 's/<string>rustdesk<\/string>/<string>${{ inputs.appname }}<\/string>/' ./flutter/macos/Runner/Info.plist
-          sed -i '' 's/ <key>NSHumanReadableCopyright<\/key>.*<string>.*<\/string>/ <key>NSHumanReadableCopyright<\/key>\n  <string>Copyright \u00A9 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved.<\/string>/' ./flutter/macos/Runner/Info.plist
+          sed -i '' 's/ <key>NSHumanReadableCopyright<\/key>.*<string>.*<\/string>/ <key>NSHumanReadableCopyright<\/key>\n  <string>Copyright \u00A9 2026 ${{ fromJson(inputs.extras).compname }}. All rights reserved.<\/string>/' ./flutter/macos/Runner/Info.plist
           sed -i '' 's/ <key>NSMicrophoneUsageDescription<\/key>.*<string>.*<\/string>/ <key>NSMicrophoneUsageDescription<\/key>\n  <string>${{ inputs.appname }} needs microphone access for audio sharing.<\/string>/' ./flutter/macos/Runner/Info.plist
 
           # Update Xcode project settings
@@ -235,7 +235,7 @@ jobs:
         run: |
           sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./flutter/lib/desktop/pages/desktop_setting_page.dart
           sed -i '' -e 's|Purslane Ltd.|${{ fromJson(inputs.extras).compname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
-          sed -i '' -e 's|"Copyright \u00A9 2025 Purslane Ltd. All rights reserved."|"Copyright \u00A9 2025 ${{ fromJson(inputs.extras).compname }}. All rights reserved."|' ./flutter/windows/runner/Runner.rc
+          sed -i '' -e 's|"Copyright \u00A9 2026 Purslane Ltd. All rights reserved."|"Copyright \u00A9 2026 ${{ fromJson(inputs.extras).compname }}. All rights reserved."|' ./flutter/windows/runner/Runner.rc
           sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./flutter/windows/runner/Runner.rc
           sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./Cargo.toml
           sed -i '' -e 's|Purslane Ltd|${{ fromJson(inputs.extras).compname }}|' ./libs/portable/Cargo.toml

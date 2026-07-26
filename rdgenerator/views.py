@@ -109,6 +109,9 @@ def generator_view(request):
 
             ###create the custom.txt json here and send in as inputs below
             decodedCustom = {}
+            if slogan := form.cleaned_data.get('slogan'):
+                if slogan:
+                    decodedCustom['slogan'] = slogan
             if direction != "Both":
                 decodedCustom['conn-type'] = direction
             if installation == "installationN":
