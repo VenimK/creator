@@ -846,6 +846,11 @@ jobs:
             
             # Clean up
             rm certificate.p12 
+            
+            # Verify signature is actually valid (catches expired certificates)
+            echo "Verifying signature validity..."
+            codesign --verify --deep --strict --verbose=2 "${{ inputs.appname }}.app"
+            echo "Certificate signature verified OK"
 
       - name: Ad-hoc sign macOS app bundle (fallback)
         if: env.MACOS_P12_BASE64 == '' || steps.cert_sign.outcome == 'failure'
